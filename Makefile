@@ -1,8 +1,5 @@
-build: prepare
+build:
 	cabal build
-
-repl:
-	cabal repl
 
 prepare:
 	cabal sandbox init

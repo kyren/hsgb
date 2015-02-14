@@ -1,6 +1,6 @@
 build:
 	cabal build
 
-prepare:
+setup:
 	cabal sandbox init
 	cabal install --only-dependencies

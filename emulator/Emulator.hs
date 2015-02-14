@@ -1,2 +1,4 @@
+import Gameboy.Cpu
+
 main :: IO ()
-main = putStrLn "yep"
+main = putStrLn hello

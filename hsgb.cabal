@@ -1,0 +1,13 @@
+name:                gb
+version:             0.1.0.0
+author:              kyren
+maintainer:          kerriganw@gmail.com
+build-type:          Simple
+cabal-version:       >= 1.10
+
+library
+  hs-source-dirs:      lib
+  build-depends:       base >= 4 && < 5
+  exposed-modules:     Gameboy.Cpu
+  default-language:    Haskell2010
+  ghc-options:         -Wall -fwarn-incomplete-patterns -fno-warn-name-shadowing

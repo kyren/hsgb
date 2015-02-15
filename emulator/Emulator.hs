@@ -38,9 +38,9 @@ processEvents = alloca $ \eventPtr -> do
 
 pixelGray :: Pixel -> CInt
 pixelGray Black = 0
-pixelGray DarkGray = 80
-pixelGray LightGray = 160
-pixelGray White = 240
+pixelGray DarkGray = 96
+pixelGray LightGray = 192
+pixelGray White = 255
 
 drawScreen :: SDL.Renderer -> Screen -> IO ()
 drawScreen renderer screen = alloca $ \rect -> sequence_ [drawPixel rect x y (pixelAt screen x y) | x <- [0 .. horizontalPixels - 1], y <- [0 .. verticalPixels - 1]]

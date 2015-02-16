@@ -18,6 +18,15 @@ class Monad m => CPU m where
   setStackPointer :: Word16 -> m ()
   tick :: Int -> m ()
 
+makeWord :: Word8 -> Word8 -> Word16
+makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l
+
+highByte :: Word16 -> Word8
+highByte w = fromIntegral (shift w (-8))
+
+lowByte :: Word16 -> Word8
+lowByte = fromIntegral
+
 {-
 data CPU = CPU {
     _aRegister, _bRegister, _cRegister, _dRegister, _eRegister, _hRegister, _lRegister, _fRegister:: Word8,
@@ -36,15 +45,6 @@ initCPU = CPU 0 0 0 0 0 0 0 0 0 0 0 0
 class Monad m => Memory m where
   peek :: Word16 -> m Word8
   poke :: Word16 -> Word8 -> m ()
-
-makeWord :: Word8 -> Word8 -> Word16
-makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l
-
-highByte :: Word16 -> Word8
-highByte w = fromIntegral (shift w (-8))
-
-lowByte :: Word16 -> Word8
-lowByte = fromIntegral
 
 reset :: MonadState CPU m => m ()
 reset = put initCPU

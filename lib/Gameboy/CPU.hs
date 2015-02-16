@@ -1,14 +1,24 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE FlexibleContexts #-}
-
 module Gameboy.CPU where
 
 import Data.Word
 import Data.Bits
-import Control.Monad.State
-import Control.Lens
 
+class Monad m => Memory m where
+  peek :: Word16 -> m Word8
+  poke :: Word16 -> Word8 -> m ()
+
+data Register = ARegister | BRegister | CRegister | DRegister | ERegister | HRegister | LRegister | FRegister
+
+class Monad m => CPU m where
+  register :: Register -> m Word8
+  setRegister :: Register -> Word8 -> m ()
+  programCounter :: m Word16
+  setProgramCounter :: Word16 -> m ()
+  stackPointer :: m Word16
+  setStackPointer :: Word16 -> m ()
+  tick :: Int -> m ()
+
+{-
 data CPU = CPU {
     _aRegister, _bRegister, _cRegister, _dRegister, _eRegister, _hRegister, _lRegister, _fRegister:: Word8,
     _programCounter :: Word16,
@@ -183,3 +193,5 @@ popr reg1 reg2 = do
   setReg8 reg1 (highByte val)
   setReg8 reg2 (lowByte val)
   tick 3
+
+-}

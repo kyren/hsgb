@@ -10,11 +10,14 @@ step :: (CPU m, Memory m) => m ()
 step = getNextPC >>= doOp
 
 doOp :: (CPU m, Memory m) => Word8 -> m ()
-doOp 0x0 = return ()
+doOp 0x0 = noop
 doOp 0x1 = load_rxx_nn BRegister CRegister
 doOp 0x2 = load_mrxx_rx BRegister CRegister ARegister
 doOp 0x3 = inc_rxx BRegister CRegister
 doOp _ = fail "Invalid Instruction"
+
+noop :: (CPU m, Memory m) => m ()
+noop = tick 1
 
 load_rxx_nn :: (CPU m, Memory m) => Register -> Register -> m ()
 load_rxx_nn rh rl = do

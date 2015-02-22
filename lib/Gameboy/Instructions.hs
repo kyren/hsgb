@@ -7,14 +7,14 @@ import Gameboy.CPU
 {-# ANN module "HLint: ignore Use camelCase" #-} 
 
 step :: (CPU m, Memory m) => m ()
-step = undefined
+step = getNextPC >>= doOp
 
-ops :: (CPU m, Memory m) => Word8 -> m ()
-ops 0x0 = return ()
-ops 0x1 = load_rxx_nn BRegister CRegister
-ops 0x2 = load_mrxx_rx BRegister CRegister ARegister
-ops 0x3 = inc_rxx BRegister CRegister
-ops _ = fail "Invalid Instruction"
+doOp :: (CPU m, Memory m) => Word8 -> m ()
+doOp 0x0 = return ()
+doOp 0x1 = load_rxx_nn BRegister CRegister
+doOp 0x2 = load_mrxx_rx BRegister CRegister ARegister
+doOp 0x3 = inc_rxx BRegister CRegister
+doOp _ = fail "Invalid Instruction"
 
 load_rxx_nn :: (CPU m, Memory m) => Register -> Register -> m ()
 load_rxx_nn rh rl = do

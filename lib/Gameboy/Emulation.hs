@@ -5,7 +5,6 @@ module Gameboy.Emulation where
 import Data.Word
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import Control.Applicative
 import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Trans.Class

@@ -1,6 +1,7 @@
 module Gameboy.Instructions where
 
 import Data.Word
+import Data.Bits
 import Control.Monad
 import Gameboy.CPU
 
@@ -10,10 +11,14 @@ step :: (CPU m, Memory m) => m ()
 step = getNextPC >>= doOp
 
 doOp :: (CPU m, Memory m) => Word8 -> m ()
-doOp 0x0 = noop
-doOp 0x1 = load_rxx_nn BRegister CRegister
-doOp 0x2 = load_mrxx_rx BRegister CRegister ARegister
-doOp 0x3 = inc_rxx BRegister CRegister
+doOp 0x00 = noop
+doOp 0x01 = load_rxx_nn BRegister CRegister
+doOp 0x02 = load_mrxx_rx BRegister CRegister ARegister
+doOp 0x03 = inc_rxx BRegister CRegister
+doOp 0x04 = inc_rx BRegister
+doOp 0x05 = dec_rx BRegister
+doOp 0x06 = load_rx_n BRegister
+doOp 0xc3 = jump_nn
 doOp _ = fail "Invalid Instruction"
 
 noop :: (CPU m, Memory m) => m ()
@@ -30,14 +35,6 @@ load_mrxx_rx rh rl sr = do
   v <- getRegister sr
   setMemory addr v
   tick 2
-
-inc_rxx :: CPU m => Register -> Register -> m ()
-inc_rxx rh rl = do
-  hval <- getRegister rh
-  lval <- getRegister rl
-  let incval = lval + 1
-  setRegister rl incval
-  when (incval == 0) $ setRegister rh (hval + 1)
 
 load_rx_rx :: CPU m => Register -> Register -> m ()
 load_rx_rx sourceReg targetReg = do
@@ -96,6 +93,33 @@ load_rx_mnn targetReg = do
   setRegister targetReg val
   tick 4
 
+inc_rx :: CPU m => Register -> m ()
+inc_rx r = do
+  v <- getRegister r
+  let inc = v + 1
+  setRegister r inc
+  setFlag Zero (inc == 0)
+  setFlag Operation False
+  setFlag HalfCarry (inc .&. 0x0F == 0)
+  tick 1
+
+inc_rxx :: CPU m => Register -> Register -> m ()
+inc_rxx rh rl = do
+  hval <- getRegister rh
+  lval <- getRegister rl
+  let incval = lval + 1
+  setRegister rl incval
+  when (incval == 0) $ setRegister rh (hval + 1)
+
+dec_rx :: CPU m => Register -> m ()
+dec_rx r = do
+  v <- getRegister r
+  let dec = v - 1
+  setRegister r dec
+  setFlag Zero (dec == 0)
+  setFlag Operation True
+  setFlag HalfCarry (dec .&. 0x0F == 0x0F)
+
 pushr :: (CPU m, Memory m) => Register -> Register -> m ()
 pushr reg1 reg2 = do
   val <- getRegister16 reg1 reg2
@@ -107,4 +131,9 @@ popr reg1 reg2 = do
   val <- popStack16
   setRegister reg1 (highByte val)
   setRegister reg2 (lowByte val)
+  tick 3
+
+jump_nn :: (CPU m, Memory m) => m ()
+jump_nn = do
+  getNextPC16 >>= setProgramCounter
   tick 3

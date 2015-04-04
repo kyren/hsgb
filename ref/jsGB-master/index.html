@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <title>jsGB - Gameboy Emulator</title>
+ </head>
+ <body>
+  <div id="out">
+   <canvas id="screen" width="160" height="144" />
+  </div>
+  <div class="subcanv">
+   <ul class="ops">
+    <li id="op_reset">Reset</li>
+    <li id="op_run">Run</li>
+   </ul>
+  </div><br />
+<input type="file" id="files" name="files[]" />
+<br />
+<output id="list"></output>
+<script type="text/javascript" src="js/gpu.js"></script>
+<script type="text/javascript" src="js/mmu.js"></script>
+<script type="text/javascript" src="js/key.js"></script>
+<script type="text/javascript" src="js/timer.js"></script>
+<script type="text/javascript" src="js/z80.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
+</body>
+</html>

@@ -8,6 +8,7 @@ class Monad m => Memory m where
   setMemory :: Word16 -> Word8 -> m ()
 
 data Register = ARegister | BRegister | CRegister | DRegister | ERegister | HRegister | LRegister | FRegister
+data Flag = Zero | Operation | HalfCarry | Carry
 
 class Monad m => CPU m where
   getRegister :: Register -> m Word8
@@ -26,6 +27,12 @@ highByte w = fromIntegral (shift w (-8))
 
 lowByte :: Word16 -> Word8
 lowByte = fromIntegral
+
+flagBit :: Flag -> Int
+flagBit Zero = 0x80
+flagBit Operation = 0x40
+flagBit HalfCarry = 0x20
+flagBit Carry = 0x10
 
 getRegister16 :: CPU m => Register -> Register -> m Word16
 getRegister16 regh regl = do
@@ -84,3 +91,16 @@ popStack16 = do
   l <- popStack
   h <- popStack
   return $ makeWord h l
+
+getFlag :: (CPU m) => Flag -> m Bool
+getFlag fl = do
+  freg <- getRegister FRegister
+  return $ testBit freg (flagBit fl)
+
+setFlag :: (CPU m) => Flag -> Bool -> m ()
+setFlag flag state = do
+  freg <- getRegister FRegister
+  let fbit = flagBit flag
+  let ufreg = if state then setBit freg fbit else clearBit freg fbit
+  setRegister FRegister ufreg
+  return ()

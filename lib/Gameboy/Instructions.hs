@@ -18,6 +18,8 @@ doOp 0x03 = inc_rxx BRegister CRegister
 doOp 0x04 = inc_rx BRegister
 doOp 0x05 = dec_rx BRegister
 doOp 0x06 = load_rx_n BRegister
+doOp 0x07 = rlca
+doOp 0x08 = load_mnn_sp
 doOp 0xc3 = jump_nn
 doOp _ = fail "Invalid Instruction"
 
@@ -93,6 +95,13 @@ load_rx_mnn targetReg = do
   setRegister targetReg val
   tick 4
 
+load_mnn_sp :: (CPU m, Memory m) => Register -> m ()
+load_mnn_sp = do
+  addr <- getNextPC16
+  sp <- getStackPointer
+  setMemory16 addr sp
+  tick 5
+
 inc_rx :: CPU m => Register -> m ()
 inc_rx r = do
   v <- getRegister r
@@ -105,11 +114,9 @@ inc_rx r = do
 
 inc_rxx :: CPU m => Register -> Register -> m ()
 inc_rxx rh rl = do
-  hval <- getRegister rh
-  lval <- getRegister rl
-  let incval = lval + 1
-  setRegister rl incval
-  when (incval == 0) $ setRegister rh (hval + 1)
+  val <- getRegister16 rh rl
+  setRegister16 rh rl (val + 1)
+  tick 2
 
 dec_rx :: CPU m => Register -> m ()
 dec_rx r = do
@@ -119,6 +126,21 @@ dec_rx r = do
   setFlag Zero (dec == 0)
   setFlag Operation True
   setFlag HalfCarry (dec .&. 0x0F == 0x0F)
+  tick 1
+
+dec_rxx :: CPU m => Register -> Register -> m ()
+dec_rxx rh rl = do
+  val <- getRegister16 rh rl
+  setRegister16 rh rl (val - 1)
+  tick 2
+
+rlca :: CPU m => m ()
+rlca = do
+  val <- getRegister ARegister
+  let rval = rotateL val
+  setRegister ARegister rval
+  setFlag Carry (testBit 7 val)
+  tick 1
 
 pushr :: (CPU m, Memory m) => Register -> Register -> m ()
 pushr reg1 reg2 = do

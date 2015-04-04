@@ -29,10 +29,10 @@ lowByte :: Word16 -> Word8
 lowByte = fromIntegral
 
 flagBit :: Flag -> Int
-flagBit Zero = 0x80
-flagBit Operation = 0x40
-flagBit HalfCarry = 0x20
-flagBit Carry = 0x10
+flagBit Zero = 7
+flagBit Operation = 6
+flagBit HalfCarry = 5
+flagBit Carry = 4
 
 getRegister16 :: CPU m => Register -> Register -> m Word16
 getRegister16 regh regl = do

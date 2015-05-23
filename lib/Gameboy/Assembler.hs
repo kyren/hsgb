@@ -7,7 +7,6 @@ import Data.Char
 import Data.Word
 import Control.Monad
 import Text.Parsec
-import Gameboy.CPU
 import Gameboy.Instructions
 
 spaces1 :: Parsec String st String
@@ -27,30 +26,44 @@ positiveInteger = do
 word8 :: Parsec String st Word8
 word8 = positiveInteger
 
-register :: Parsec String st Register
-register = aRegister <|> bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister <|> fRegister
+load8Register :: Parsec String st LoadRegister
+load8Register = bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister
   where
-    aRegister = char 'A' >> return ARegister
-    bRegister = char 'B' >> return BRegister
-    cRegister = char 'C' >> return CRegister
-    dRegister = char 'D' >> return DRegister
-    eRegister = char 'E' >> return ERegister
-    hRegister = char 'H' >> return HRegister
-    lRegister = char 'L' >> return LRegister
-    fRegister = char 'F' >> return FRegister
+    bRegister = char 'B' >> return LoadB
+    cRegister = char 'C' >> return LoadC
+    dRegister = char 'D' >> return LoadD
+    eRegister = char 'E' >> return LoadE
+    hRegister = char 'H' >> return LoadH
+    lRegister = char 'L' >> return LoadL
 
 load8I :: Parsec String st Instruction
 load8I = do
-  _ <- string "LD"
-  _ <- spaces1
-  r <- register
-  _ <- char ','
-  _ <- spaces
+  _ <- string "LD" >> spaces1
+  r <- load8Register
+  _ <- spaces >> char ',' >> spaces
   v <- word8
   return $ Load8I r v
 
+load8Target :: Parsec String st Load8Target
+load8Target = regTarget <|> athlTarget
+  where
+    regTarget = do
+      r <- load8Register
+      return $ Load8TargetRegister r
+    athlTarget = do
+      _ <- string "(HL)"
+      return Load8TargetAtHL
+
+load8 :: Parsec String st Instruction
+load8 = do
+  _ <- string "LD" >> spaces1
+  t <- load8Target
+  _ <- spaces >> char ',' >> spaces
+  s <- load8Target
+  return $ Load8 t s
+
 instructionPart :: Parsec String st Instruction
-instructionPart = load8I
+instructionPart = try load8I <|> try load8
 
 comment :: Parsec String st ()
 comment = do

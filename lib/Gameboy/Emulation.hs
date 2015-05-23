@@ -4,8 +4,6 @@ import Data.Word
 import Data.Bits
 import Gameboy.CPU
 
-{-# ANN module "HLint: ignore Use camelCase" #-} 
-
 step :: (CPU m, Memory m) => m ()
 step = getNextPC >>= doOp
 

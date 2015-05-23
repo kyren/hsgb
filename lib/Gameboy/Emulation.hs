@@ -1,122 +1,159 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Gameboy.Emulation where
 
 import Data.Word
-import qualified Data.Vector.Unboxed as VU
-import qualified Data.Vector.Unboxed.Mutable as VUM
-import Control.Monad
-import Control.Monad.ST
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Reader
-import Data.STRef
+import Data.Bits
 import Gameboy.CPU
-import Gameboy.Instructions
 
-data SimpleState = SimpleState {
-    memory :: VU.Vector Word8,
-    aRegister, bRegister, cRegister, dRegister, eRegister, hRegister, lRegister, fRegister :: Word8,
-    programCounter :: Word16,
-    stackPointer :: Word16,
-    clock :: Word64
-  }
-  deriving Show
+{-# ANN module "HLint: ignore Use camelCase" #-} 
 
-data SimpleStateST s = SimpleStateST {
-    stMemory :: VUM.MVector s Word8,
-    stARegister, stBRegister, stCRegister, stDRegister, stERegister, stHRegister, stLRegister, stFRegister :: STRef s Word8,
-    stProgramCounter :: STRef s Word16,
-    stStackPointer :: STRef s Word16,
-    stClock :: STRef s Word64
-  }
+step :: (CPU m, Memory m) => m ()
+step = getNextPC >>= doOp
 
-newtype SimpleEnvironmentST s a = SimpleEnvironmentST (ReaderT (SimpleStateST s) (ST s) a)
-  deriving (Monad, Applicative, Functor)
+doOp :: (CPU m, Memory m) => Word8 -> m ()
+doOp 0x00 = noop
+doOp 0x01 = load_rxx_nn BCRegister
+doOp 0x02 = load_mrxx_rx BCRegister ARegister
+doOp 0x03 = inc_rxx BCRegister
+doOp 0x04 = inc_rx BRegister
+doOp 0x05 = dec_rx BRegister
+doOp 0x06 = load_rx_n BRegister
+doOp 0x07 = rlca
+doOp 0x08 = load_mnn_sp
+doOp 0xc3 = jump_nn
+doOp _ = fail "Invalid Instruction"
 
-initialState :: SimpleState
-initialState = SimpleState (VU.replicate 0x10000 0) 0 0 0 0 0 0 0 0 0 0 0
+noop :: (CPU m, Memory m) => m ()
+noop = tick 1
 
-freezeState :: SimpleStateST s -> ST s SimpleState
-freezeState st = SimpleState <$>
-    VU.freeze (stMemory st) <*> 
-    rd stARegister <*>
-    rd stBRegister <*>
-    rd stCRegister <*>
-    rd stDRegister <*>
-    rd stERegister <*>
-    rd stHRegister <*>
-    rd stLRegister <*>
-    rd stFRegister <*>
-    rd stProgramCounter <*>
-    rd stStackPointer <*>
-    rd stClock
-  where
-    rd f = readSTRef (f st)
+load_rxx_nn :: (CPU m, Memory m) => Register16 -> m ()
+load_rxx_nn r16 = do
+  getNextPC16 >>= setRegister16 r16
+  tick 3
 
-thawState :: SimpleState -> ST s (SimpleStateST s)
-thawState st = SimpleStateST <$>
-    VU.thaw (memory st) <*>
-    mk aRegister <*>
-    mk bRegister <*>
-    mk cRegister <*>
-    mk dRegister <*>
-    mk eRegister <*>
-    mk hRegister <*>
-    mk lRegister <*>
-    mk fRegister <*>
-    mk programCounter <*>
-    mk stackPointer <*>
-    mk clock
-  where
-    mk f = newSTRef (f st)
+load_mrxx_rx :: (CPU m, Memory m) => Register16 -> Register -> m ()
+load_mrxx_rx r16 sr = do
+  addr <- getRegister16 r16
+  v <- getRegister sr
+  setMemory addr v
+  tick 2
 
-instance Memory (SimpleEnvironmentST s) where
-  getMemory addr = SimpleEnvironmentST $ do
-    state <- ask
-    lift $ VUM.read (stMemory state) (fromIntegral addr)
-  setMemory addr byte = SimpleEnvironmentST $ do
-    state <- ask
-    lift $ VUM.write (stMemory state) (fromIntegral addr) byte
+load_rx_rx :: CPU m => Register -> Register -> m ()
+load_rx_rx sourceReg targetReg = do
+  getRegister sourceReg >>= setRegister targetReg
+  tick 1
 
-registerRef :: Register -> SimpleStateST s -> STRef s Word8
-registerRef ARegister = stARegister
-registerRef BRegister = stBRegister
-registerRef CRegister = stCRegister
-registerRef DRegister = stDRegister
-registerRef ERegister = stERegister
-registerRef HRegister = stHRegister
-registerRef LRegister = stLRegister
-registerRef FRegister = stFRegister
+load_rx_mhl :: (CPU m, Memory m) => Register -> m ()
+load_rx_mhl targetReg = do
+  getRegister16 HLRegister >>= getMemory >>= setRegister targetReg
+  tick 2
 
-readRef :: (SimpleStateST s -> STRef s v) -> SimpleEnvironmentST s v
-readRef field = SimpleEnvironmentST $ do
-  state <- ask
-  lift $ readSTRef (field state)
+load_mhl_rx :: (CPU m, Memory m) => Register -> m ()
+load_mhl_rx sourceReg = do
+  addr <- getRegister16 HLRegister
+  val <- getRegister sourceReg
+  setMemory addr val
+  tick 2
 
-writeRef :: (SimpleStateST s -> STRef s v) -> v -> SimpleEnvironmentST s ()
-writeRef field v = SimpleEnvironmentST $ do
-  state <- ask
-  lift $ writeSTRef (field state) v
+load_rx_n :: (CPU m, Memory m) => Register -> m ()
+load_rx_n targetReg = do
+  getNextPC >>= setRegister targetReg
+  tick 2
 
-instance CPU (SimpleEnvironmentST s) where
-  getRegister r = readRef (registerRef r)
-  setRegister r = writeRef (registerRef r)
+load_mhl_n :: (CPU m, Memory m) => m ()
+load_mhl_n = do
+  v <- getNextPC
+  addr <- getRegister16 HLRegister
+  setMemory addr v
+  tick 2
 
-  getProgramCounter = readRef stProgramCounter
-  setProgramCounter = writeRef stProgramCounter
+load_mxx_rx :: (CPU m, Memory m) => Register16 -> Register -> m ()
+load_mxx_rx r16 sourceReg = do
+  addr <- getRegister16 r16
+  v <- getRegister sourceReg
+  setMemory addr v
+  tick 2
 
-  getStackPointer = readRef stStackPointer
-  setStackPointer = writeRef stStackPointer
+load_mnn_rx :: (CPU m, Memory m) => Register -> m ()
+load_mnn_rx sourceReg = do
+  addr <- getNextPC16
+  val <- getRegister sourceReg
+  setMemory addr val
+  tick 4
 
-  tick n = do
-    c <- readRef stClock
-    writeRef stClock (c + fromIntegral n)
+load_rx_mxx :: (CPU m, Memory m) => Register -> Register16 -> m ()
+load_rx_mxx targetReg mr16 = do
+  addr <- getRegister16 mr16
+  val <- getMemory addr
+  setRegister targetReg val
+  tick 2
 
-runSimpleState :: SimpleState -> Int -> SimpleState
-runSimpleState initial count =
-  runST $ go (replicateM_ count step)
-  where
-    go (SimpleEnvironmentST steps) = do
-      st <- thawState initial
-      _ <- runReaderT steps st
-      freezeState st
+load_rx_mnn :: (CPU m, Memory m) => Register -> m ()
+load_rx_mnn targetReg = do
+  addr <- getNextPC16
+  val <- getMemory addr
+  setRegister targetReg val
+  tick 4
+
+load_mnn_sp :: (CPU m, Memory m) => m ()
+load_mnn_sp = do
+  addr <- getNextPC16
+  sp <- getStackPointer
+  setMemory16 addr sp
+  tick 5
+
+inc_rx :: CPU m => Register -> m ()
+inc_rx r = do
+  v <- getRegister r
+  let inc = v + 1
+  setRegister r inc
+  setFlag Zero (inc == 0)
+  setFlag Operation False
+  setFlag HalfCarry (inc .&. 0x0F == 0)
+  tick 1
+
+inc_rxx :: CPU m => Register16 -> m ()
+inc_rxx r16 = do
+  val <- getRegister16 r16
+  setRegister16 r16 (val + 1)
+  tick 2
+
+dec_rx :: CPU m => Register -> m ()
+dec_rx r = do
+  v <- getRegister r
+  let dec = v - 1
+  setRegister r dec
+  setFlag Zero (dec == 0)
+  setFlag Operation True
+  setFlag HalfCarry (dec .&. 0x0F == 0x0F)
+  tick 1
+
+dec_rxx :: CPU m => Register16 -> m ()
+dec_rxx r16 = do
+  val <- getRegister16 r16
+  setRegister16 r16 (val - 1)
+  tick 2
+
+rlca :: CPU m => m ()
+rlca = do
+  val <- getRegister ARegister
+  let rval = rotateL val 1
+  setRegister ARegister rval
+  setFlag Carry (testBit val 7)
+  tick 1
+
+pushr :: (CPU m, Memory m) => Register16 -> m ()
+pushr r16 = do
+  val <- getRegister16 r16
+  pushStack16 val
+  tick 3
+
+popr :: (CPU m, Memory m) => Register16 -> m ()
+popr r16 = do
+  val <- popStack16
+  setRegister16 r16 val
+  tick 3
+
+jump_nn :: (CPU m, Memory m) => m ()
+jump_nn = do
+  getNextPC16 >>= setProgramCounter
+  tick 3

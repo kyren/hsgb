@@ -8,6 +8,7 @@ class Monad m => Memory m where
   setMemory :: Word16 -> Word8 -> m ()
 
 data Register = ARegister | BRegister | CRegister | DRegister | ERegister | HRegister | LRegister | FRegister
+data Register16 = AFRegister | BCRegister | DERegister | HLRegister
 data Flag = Zero | Operation | HalfCarry | Carry
 
 class Monad m => CPU m where
@@ -18,8 +19,6 @@ class Monad m => CPU m where
   getStackPointer :: m Word16
   setStackPointer :: Word16 -> m ()
   tick :: Int -> m ()
-
-data Register16 = AFRegister | BCRegister | DERegister | HLRegister
 
 makeWord :: Word8 -> Word8 -> Word16
 makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l

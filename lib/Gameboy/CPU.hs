@@ -7,9 +7,9 @@ class Monad m => Memory m where
   getMemory :: Word16 -> m Word8
   setMemory :: Word16 -> Word8 -> m ()
 
-data Register = ARegister | BRegister | CRegister | DRegister | ERegister | HRegister | LRegister | FRegister
-data Register16 = AFRegister | BCRegister | DERegister | HLRegister
-data Flag = Zero | Operation | HalfCarry | Carry
+data Register = ARegister | BRegister | CRegister | DRegister | ERegister | HRegister | LRegister | FRegister deriving Show
+data Register16 = AFRegister | BCRegister | DERegister | HLRegister deriving Show
+data Flag = Zero | Operation | HalfCarry | Carry deriving Show
 
 class Monad m => CPU m where
   getRegister :: Register -> m Word8

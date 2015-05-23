@@ -19,6 +19,8 @@ class Monad m => CPU m where
   setStackPointer :: Word16 -> m ()
   tick :: Int -> m ()
 
+data Register16 = AFRegister | BCRegister | DERegister | HLRegister
+
 makeWord :: Word8 -> Word8 -> Word16
 makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l
 
@@ -34,14 +36,22 @@ flagBit Operation = 6
 flagBit HalfCarry = 5
 flagBit Carry = 4
 
-getRegister16 :: CPU m => Register -> Register -> m Word16
-getRegister16 regh regl = do
+decomposeRegister16 :: Register16 -> (Register, Register)
+decomposeRegister16 AFRegister = (ARegister, FRegister)
+decomposeRegister16 BCRegister = (BRegister, CRegister)
+decomposeRegister16 DERegister = (DRegister, ERegister)
+decomposeRegister16 HLRegister = (HRegister, LRegister)
+
+getRegister16 :: CPU m => Register16 -> m Word16
+getRegister16 reg = do
+  let (regh, regl) = decomposeRegister16 reg
   high <- getRegister regh
   low <- getRegister regl
   return $ makeWord high low
 
-setRegister16 :: CPU m => Register -> Register -> Word16 -> m ()
-setRegister16 regh regl val = do
+setRegister16 :: CPU m => Register16 -> Word16 -> m ()
+setRegister16 reg val = do
+  let (regh, regl) = decomposeRegister16 reg
   setRegister regh (highByte val)
   setRegister regl (lowByte val)
 

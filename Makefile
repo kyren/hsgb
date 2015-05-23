@@ -1,10 +1,13 @@
 build: setup
 	cabal build
 
-setup:
-	cabal sandbox init
-	cabal install --only-dependencies
-	cabal configure
+test: setup
+	cabal test
 
 clean:
 	cabal sandbox delete
+
+setup:
+	cabal sandbox init
+	cabal install --only-dependencies --enable-tests
+	cabal configure --enable-tests

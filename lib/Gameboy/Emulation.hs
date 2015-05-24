@@ -1,12 +1,55 @@
 module Gameboy.Emulation where
 
 import Data.Word
-import Data.Bits
 import Gameboy.CPU
+import Gameboy.Instructions
 
 step :: (CPU m, Memory m) => m ()
-step = getNextPC >>= doOp
+step = do
+  mi <- decodeInstruction getNextPC
+  case mi of
+    Nothing -> fail "Invalid Instruction"
+    Just i -> doInstruction i
 
+doInstruction :: (CPU m, Memory m) => Instruction -> m ()
+doInstruction NoOp = tick 1
+doInstruction (Load8I t v) = do
+    setRegister r v
+    tick 2
+  where
+    r =
+      case t of
+        LoadB -> BRegister
+        LoadC -> CRegister
+        LoadD -> DRegister
+        LoadE -> ERegister
+        LoadH -> HRegister
+        LoadL -> LRegister
+doInstruction (Load8 t s) = getLoad8Target s >>= setLoad8Target t 
+
+loadRegisterToRegister :: LoadRegister -> Register
+loadRegisterToRegister LoadB = BRegister
+loadRegisterToRegister LoadC = CRegister
+loadRegisterToRegister LoadD = DRegister
+loadRegisterToRegister LoadE = ERegister
+loadRegisterToRegister LoadH = HRegister
+loadRegisterToRegister LoadL = LRegister
+
+getLoadRegister :: (CPU m, Memory m) => LoadRegister -> m Word8
+getLoadRegister l = getRegister (loadRegisterToRegister l)
+
+setLoadRegister :: (CPU m, Memory m) => LoadRegister -> Word8 -> m ()
+setLoadRegister l = setRegister (loadRegisterToRegister l)
+
+getLoad8Target :: (CPU m, Memory m) => Load8Target -> m Word8
+getLoad8Target (Load8TargetRegister lr) = getLoadRegister lr
+getLoad8Target Load8TargetAtHL = getRegister16 HLRegister >>= getMemory
+
+setLoad8Target :: (CPU m, Memory m) => Load8Target -> Word8 -> m ()
+setLoad8Target (Load8TargetRegister lr) v = setLoadRegister lr v
+setLoad8Target Load8TargetAtHL v = getRegister16 HLRegister >>= \a -> setMemory a v
+
+{-
 doOp :: (CPU m, Memory m) => Word8 -> m ()
 doOp 0x00 = noop
 doOp 0x01 = load_rxx_nn BCRegister
@@ -155,3 +198,4 @@ jump_nn :: (CPU m, Memory m) => m ()
 jump_nn = do
   getNextPC16 >>= setProgramCounter
   tick 3
+-}

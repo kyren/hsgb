@@ -7,6 +7,7 @@ import Data.Char
 import Data.Word
 import Control.Monad
 import Text.Parsec
+import qualified Data.Vector.Unboxed as VU
 import Gameboy.Instructions
 
 spaces1 :: Parsec String st String
@@ -62,8 +63,11 @@ load8 = do
   s <- load8Target
   return $ Load8 t s
 
+nop :: Parsec String st Instruction
+nop = string "NOP" >> return NoOp
+
 instructionPart :: Parsec String st Instruction
-instructionPart = try load8I <|> try load8
+instructionPart = try load8I <|> try load8 <|> nop
 
 comment :: Parsec String st ()
 comment = do
@@ -103,3 +107,11 @@ parseInstructions :: String -> Either String [Instruction]
 parseInstructions input = case parse instructions "" input of
   Left err -> Left (show err)
   Right result -> Right result
+
+encodeInstructions :: [Instruction] -> VU.Vector Word8
+encodeInstructions is = VU.fromList $ concatMap encodeInstruction is
+
+assemble :: String -> Either String (VU.Vector Word8)
+assemble text = do
+  inst <- parseInstructions text
+  return $ encodeInstructions inst

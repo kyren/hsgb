@@ -120,3 +120,17 @@ runSimpleState initial count =
       st <- thawState initial
       _ <- runReaderT steps st
       freezeState st
+
+testInitialState :: VU.Vector Word8 -> SimpleState
+testInitialState is =
+    SimpleState (makelength is 0x10000) 0 0 0 0 0 0 0 0 0 0 0
+  where
+    makelength v s =
+      VU.take s v VU.++ VU.replicate (max (s - VU.length v) 0) 0x0
+
+testProgram :: VU.Vector Word8 -> Int -> [(Word16, Word8)] -> Bool
+testProgram prog cycles tests = and [check a v | (a, v) <- tests]
+  where
+    state = runSimpleState (testInitialState prog) cycles
+    check a v = (memory state VU.! fromIntegral a) == v
+

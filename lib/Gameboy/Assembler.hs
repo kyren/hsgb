@@ -1,6 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Gameboy.Assembler where
+module Gameboy.Assembler (
+  parseInstructions,
+  encodeInstructions,
+  assemble
+) where
 
 import Data.Maybe
 import Data.Char
@@ -66,8 +70,11 @@ load8 = do
 nop :: Parsec String st Instruction
 nop = string "NOP" >> return NoOp
 
+stop :: Parsec String st Instruction
+stop = string "STOP" >> return Stop
+
 instructionPart :: Parsec String st Instruction
-instructionPart = try load8I <|> try load8 <|> nop
+instructionPart = try load8I <|> try load8 <|> try nop <|> stop
 
 comment :: Parsec String st ()
 comment = do

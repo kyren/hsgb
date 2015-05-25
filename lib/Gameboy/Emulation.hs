@@ -1,53 +1,59 @@
-module Gameboy.Emulation where
+module Gameboy.Emulation (
+  step
+) where
 
+import Data.Bits
 import Data.Word
 import Gameboy.CPU
 import Gameboy.Instructions
 
 step :: (CPU m, Memory m) => m ()
-step = do
-  mi <- decodeInstruction getNextPC
-  case mi of
-    Nothing -> fail "Invalid Instruction"
-    Just i -> doInstruction i
+step = decodeInstruction getNextPC >>= doInstruction
 
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 doInstruction NoOp = tick 1
-doInstruction (Load8I t v) = do
-    setRegister r v
-    tick 2
-  where
-    r =
-      case t of
-        LoadB -> BRegister
-        LoadC -> CRegister
-        LoadD -> DRegister
-        LoadE -> ERegister
-        LoadH -> HRegister
-        LoadL -> LRegister
+doInstruction Stop = stop >> tick 4
+doInstruction (Load8I t v) = setLoadRegister t v >> tick 2
 doInstruction (Load8 t s) = getLoad8Target s >>= setLoad8Target t 
 
-loadRegisterToRegister :: LoadRegister -> Register
-loadRegisterToRegister LoadB = BRegister
-loadRegisterToRegister LoadC = CRegister
-loadRegisterToRegister LoadD = DRegister
-loadRegisterToRegister LoadE = ERegister
-loadRegisterToRegister LoadH = HRegister
-loadRegisterToRegister LoadL = LRegister
+getLoadRegister :: (CPU m) => LoadRegister -> m Word8
+getLoadRegister LoadB = getBRegister
+getLoadRegister LoadC = getCRegister
+getLoadRegister LoadD = getDRegister
+getLoadRegister LoadE = getERegister
+getLoadRegister LoadH = getHRegister
+getLoadRegister LoadL = getLRegister
 
-getLoadRegister :: (CPU m, Memory m) => LoadRegister -> m Word8
-getLoadRegister l = getRegister (loadRegisterToRegister l)
-
-setLoadRegister :: (CPU m, Memory m) => LoadRegister -> Word8 -> m ()
-setLoadRegister l = setRegister (loadRegisterToRegister l)
+setLoadRegister :: (CPU m) => LoadRegister -> Word8 -> m ()
+setLoadRegister LoadB = setBRegister
+setLoadRegister LoadC = setCRegister
+setLoadRegister LoadD = setDRegister
+setLoadRegister LoadE = setERegister
+setLoadRegister LoadH = setHRegister
+setLoadRegister LoadL = setLRegister
 
 getLoad8Target :: (CPU m, Memory m) => Load8Target -> m Word8
 getLoad8Target (Load8TargetRegister lr) = getLoadRegister lr
-getLoad8Target Load8TargetAtHL = getRegister16 HLRegister >>= getMemory
+getLoad8Target Load8TargetAtHL = do
+  h <- getHRegister
+  l <- getLRegister
+  getMemory (makeWord h l)
 
 setLoad8Target :: (CPU m, Memory m) => Load8Target -> Word8 -> m ()
 setLoad8Target (Load8TargetRegister lr) v = setLoadRegister lr v
-setLoad8Target Load8TargetAtHL v = getRegister16 HLRegister >>= \a -> setMemory a v
+setLoad8Target Load8TargetAtHL v = do
+  h <- getHRegister
+  l <- getLRegister
+  setMemory (makeWord h l) v
+
+makeWord :: Word8 -> Word8 -> Word16
+makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l
+
+getNextPC :: (CPU m, Memory m) => m Word8
+getNextPC = do
+  pc <- getProgramCounter
+  setProgramCounter (pc + 1)
+  getMemory pc
 
 {-
 doOp :: (CPU m, Memory m) => Word8 -> m ()
@@ -198,4 +204,98 @@ jump_nn :: (CPU m, Memory m) => m ()
 jump_nn = do
   getNextPC16 >>= setProgramCounter
   tick 3
+
+makeWord :: Word8 -> Word8 -> Word16
+makeWord h l = shift (fromIntegral h) 8 .|. fromIntegral l
+
+highByte :: Word16 -> Word8
+highByte w = fromIntegral (shift w (-8))
+
+lowByte :: Word16 -> Word8
+lowByte = fromIntegral
+
+flagBit :: Flag -> Int
+flagBit Zero = 7
+flagBit Operation = 6
+flagBit HalfCarry = 5
+flagBit Carry = 4
+
+decomposeRegister16 :: Register16 -> (Register, Register)
+decomposeRegister16 AFRegister = (ARegister, FRegister)
+decomposeRegister16 BCRegister = (BRegister, CRegister)
+decomposeRegister16 DERegister = (DRegister, ERegister)
+decomposeRegister16 HLRegister = (HRegister, LRegister)
+
+getRegister16 :: CPU m => Register16 -> m Word16
+getRegister16 reg = do
+  let (regh, regl) = decomposeRegister16 reg
+  high <- getRegister regh
+  low <- getRegister regl
+  return $ makeWord high low
+
+setRegister16 :: CPU m => Register16 -> Word16 -> m ()
+setRegister16 reg val = do
+  let (regh, regl) = decomposeRegister16 reg
+  setRegister regh (highByte val)
+  setRegister regl (lowByte val)
+
+getMemory16 :: Memory m => Word16 -> m Word16
+getMemory16 addr = do
+  low <- getMemory addr
+  high <- getMemory (addr + 1)
+  return $ makeWord high low
+
+setMemory16 :: Memory m => Word16 -> Word16 -> m ()
+setMemory16 addr val = do
+  setMemory addr (lowByte val)
+  setMemory (addr + 1) (highByte val)
+
+getNextPC16 :: (CPU m, Memory m) => m Word16
+getNextPC16 = do
+  pc <- getProgramCounter
+  setProgramCounter (pc + 2)
+  getMemory16 pc
+
+pushStack :: (CPU m, Memory m) => Word8 -> m ()
+pushStack val = do
+  sp <- getStackPointer
+  setStackPointer (sp - 1)
+  setMemory (sp - 1) val
+
+pushStack16 :: (CPU m, Memory m) => Word16 -> m ()
+pushStack16 val = do
+  pushStack (highByte val)
+  pushStack (lowByte val)
+
+popStack :: (CPU m, Memory m) => m Word8
+popStack = do
+  sp <- getStackPointer
+  val <- getMemory sp
+  setStackPointer (sp - 1)
+  return val
+
+popStack16 :: (CPU m, Memory m) => m Word16
+popStack16 = do
+  l <- popStack
+  h <- popStack
+  return $ makeWord h l
+
+getFlag :: (CPU m) => Flag -> m Bool
+getFlag fl = do
+  freg <- getRegister FRegister
+  return $ testBit freg (flagBit fl)
+
+setFlag :: (CPU m) => Flag -> Bool -> m ()
+setFlag flag state = do
+  freg <- getRegister FRegister
+  let fbit = flagBit flag
+  let ufreg = if state then setBit freg fbit else clearBit freg fbit
+  setRegister FRegister ufreg
+  return ()
+
+highByte :: Word16 -> Word8
+highByte w = fromIntegral (shift w (-8))
+
+lowByte :: Word16 -> Word8
+lowByte = fromIntegral
 -}

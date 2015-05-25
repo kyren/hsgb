@@ -3,9 +3,9 @@ module ProgramSpec (spec) where
 import Data.Word
 import Test.Hspec
 import Gameboy.Assembler
-import Gameboy.SimpleState
+import Gameboy.TestState
 
-testAssembly :: String -> Int -> [(Word16, Word8)] -> Bool
+testAssembly :: String -> [(Word16, Word8)] -> Bool
 testAssembly assembly = case assemble assembly of
                       Right prog -> testProgram prog
                       Left er -> error er
@@ -13,11 +13,12 @@ testAssembly assembly = case assemble assembly of
 spec :: Spec
 spec = describe "emulation" $ do
     it "runs no-ops correctly" $
-      testAssembly "NOP\n" 100 [(0, 0), (1, 0), (2, 0)] `shouldBe` True
+      testAssembly "NOP\nSTOP\n" [(100, 0)] `shouldBe` True
     it "runs 8-bit loads correctly" $
       testAssembly "\
       \ LD B,7\n\
       \ LD H,0\n\
       \ LD L,200\n\
-      \ LD (HL),B\n"
-      4 [(200, 7)] `shouldBe` True
+      \ LD (HL),B\n\
+      \ STOP\n"
+      [(199, 0), (200, 7), (201, 0)] `shouldBe` True

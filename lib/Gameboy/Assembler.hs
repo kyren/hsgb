@@ -31,33 +31,25 @@ positiveInteger = do
 word8 :: Parsec String st Word8
 word8 = positiveInteger
 
-load8Register :: Parsec String st LoadRegister
-load8Register = bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister
+load8Target :: Parsec String st Load8Target
+load8Target = aRegister <|> bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister <|> atHL
   where
-    bRegister = char 'B' >> return LoadB
-    cRegister = char 'C' >> return LoadC
-    dRegister = char 'D' >> return LoadD
-    eRegister = char 'E' >> return LoadE
-    hRegister = char 'H' >> return LoadH
-    lRegister = char 'L' >> return LoadL
+    aRegister = char 'A' >> return Load8A
+    bRegister = char 'B' >> return Load8B
+    cRegister = char 'C' >> return Load8C
+    dRegister = char 'D' >> return Load8D
+    eRegister = char 'E' >> return Load8E
+    hRegister = char 'H' >> return Load8H
+    lRegister = char 'L' >> return Load8L
+    atHL = string "(HL)" >> return Load8AtHL
 
 load8I :: Parsec String st Instruction
 load8I = do
   _ <- string "LD" >> spaces1
-  r <- load8Register
+  r <- load8Target
   _ <- spaces >> char ',' >> spaces
   v <- word8
   return $ Load8I r v
-
-load8Target :: Parsec String st Load8Target
-load8Target = regTarget <|> athlTarget
-  where
-    regTarget = do
-      r <- load8Register
-      return $ Load8TargetRegister r
-    athlTarget = do
-      _ <- string "(HL)"
-      return Load8TargetAtHL
 
 load8 :: Parsec String st Instruction
 load8 = do

@@ -13,35 +13,31 @@ step = decodeInstruction getNextPC >>= doInstruction
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 doInstruction NoOp = tick 1
 doInstruction Stop = stop >> tick 4
-doInstruction (Load8I t v) = setLoadRegister t v >> tick 2
+doInstruction (Load8I t v) = setLoad8Target t v >> tick 2
 doInstruction (Load8 t s) = getLoad8Target s >>= setLoad8Target t 
 
-getLoadRegister :: (CPU m) => LoadRegister -> m Word8
-getLoadRegister LoadB = getBRegister
-getLoadRegister LoadC = getCRegister
-getLoadRegister LoadD = getDRegister
-getLoadRegister LoadE = getERegister
-getLoadRegister LoadH = getHRegister
-getLoadRegister LoadL = getLRegister
-
-setLoadRegister :: (CPU m) => LoadRegister -> Word8 -> m ()
-setLoadRegister LoadB = setBRegister
-setLoadRegister LoadC = setCRegister
-setLoadRegister LoadD = setDRegister
-setLoadRegister LoadE = setERegister
-setLoadRegister LoadH = setHRegister
-setLoadRegister LoadL = setLRegister
-
 getLoad8Target :: (CPU m, Memory m) => Load8Target -> m Word8
-getLoad8Target (Load8TargetRegister lr) = getLoadRegister lr
-getLoad8Target Load8TargetAtHL = do
+getLoad8Target Load8A = getARegister
+getLoad8Target Load8B = getBRegister
+getLoad8Target Load8C = getCRegister
+getLoad8Target Load8D = getDRegister
+getLoad8Target Load8E = getERegister
+getLoad8Target Load8H = getHRegister
+getLoad8Target Load8L = getLRegister
+getLoad8Target Load8AtHL = do
   h <- getHRegister
   l <- getLRegister
   getMemory (makeWord h l)
 
 setLoad8Target :: (CPU m, Memory m) => Load8Target -> Word8 -> m ()
-setLoad8Target (Load8TargetRegister lr) v = setLoadRegister lr v
-setLoad8Target Load8TargetAtHL v = do
+setLoad8Target Load8A = setARegister
+setLoad8Target Load8B = setBRegister
+setLoad8Target Load8C = setCRegister
+setLoad8Target Load8D = setDRegister
+setLoad8Target Load8E = setERegister
+setLoad8Target Load8H = setHRegister
+setLoad8Target Load8L = setLRegister
+setLoad8Target Load8AtHL = \v -> do
   h <- getHRegister
   l <- getLRegister
   setMemory (makeWord h l) v

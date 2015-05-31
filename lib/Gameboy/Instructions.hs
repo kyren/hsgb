@@ -64,7 +64,12 @@ encodeInstruction (Load8 t s) = code t s
     code Load8A Load8AtBC = Just [0x0a]
     code Load8A Load8AtDE = Just [0x1a]
     code Load8A Load8AtHL = Just [0x7e]
-    code Load8A (Load8AtNN n) = Just [0xfa, highByte n, lowByte n]
+    code Load8A (Load8AtNN nn) = Just [0xfa, lowByte nn, highByte nn]
+
+    code Load8AtBC Load8A = Just [0x02]
+    code Load8AtDE Load8A = Just [0x12]
+    code Load8AtHL Load8A = Just [0x77]
+    code (Load8AtNN nn) Load8A = Just [0xea, lowByte nn, highByte nn]
 
     code Load8B Load8A = Just [0x47]
     code Load8B Load8B = Just [0x40]
@@ -163,9 +168,18 @@ decodeInstruction getWord8 = do
     0x7e -> return $ Just $ Load8 Load8A Load8AtHL
 
     0xfa -> do
-      hb <- getWord8
       lb <- getWord8
-      return $ Just $ Load8 Load8A (Load8AtNN (makeWord hb lb))
+      hb <- getWord8
+      return $ Just $ Load8 Load8A (Load8AtNN (makeWord lb hb))
+
+    0x02 -> return $ Just $ Load8 Load8AtBC Load8A
+    0x12 -> return $ Just $ Load8 Load8AtDE Load8A
+    0x77 -> return $ Just $ Load8 Load8AtHL Load8A
+
+    0xea -> do
+      lb <- getWord8
+      hb <- getWord8
+      return $ Just $ Load8 (Load8AtNN (makeWord lb hb)) Load8A
 
     0x47 -> return $ Just $ Load8 Load8B Load8A
     0x40 -> return $ Just $ Load8 Load8B Load8B

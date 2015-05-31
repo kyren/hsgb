@@ -8,7 +8,11 @@ import Gameboy.CPU
 import Gameboy.Instructions
 
 step :: (CPU m, Memory m) => m ()
-step = decodeInstruction getNextPC >>= doInstruction
+step = do
+  mi <- decodeInstruction getNextPC
+  case mi of
+    Just i -> doInstruction i
+    Nothing -> fail "Invalid opcode"
 
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 doInstruction NoOp = tick 1

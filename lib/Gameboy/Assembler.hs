@@ -86,7 +86,9 @@ instructionLine = do
   skipMany (oneOf " \t")
   instruction <- instructionPart
   endLinePart
-  return $ Just instruction
+  if validInstruction instruction
+     then return $ Just instruction
+     else fail "Invalid Instruction"
 
 blankLine :: Parsec String st (Maybe Instruction)
 blankLine = do
@@ -107,10 +109,19 @@ parseInstructions input = case parse instructions "" input of
   Left err -> Left (show err)
   Right result -> Right result
 
-encodeInstructions :: [Instruction] -> VU.Vector Word8
-encodeInstructions is = VU.fromList $ concatMap encodeInstruction is
+encodeInstructions :: [Instruction] -> Maybe (VU.Vector Word8)
+encodeInstructions insts = VU.fromList <$> ops insts
+  where
+    ops (i:is) =
+      case encodeInstruction i of
+        Just os -> (os ++) <$> ops is
+        Nothing -> Nothing
+    ops [] = Just []
+      
 
 assemble :: String -> Either String (VU.Vector Word8)
 assemble text = do
   inst <- parseInstructions text
-  return $ encodeInstructions inst
+  case encodeInstructions inst of
+    Just ops -> Right ops
+    Nothing -> Left "Invalid Instruction"

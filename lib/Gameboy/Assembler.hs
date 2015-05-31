@@ -31,8 +31,8 @@ positiveInteger = do
 word8 :: Parsec String st Word8
 word8 = positiveInteger
 
-load8Target :: Parsec String st Load8Target
-load8Target = aRegister <|> bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister <|> atHL
+load8Part :: Parsec String st Load8Part
+load8Part = aRegister <|> bRegister <|> cRegister <|> dRegister <|> eRegister <|> hRegister <|> lRegister <|> atHL <|> immediate
   where
     aRegister = char 'A' >> return Load8A
     bRegister = char 'B' >> return Load8B
@@ -42,21 +42,14 @@ load8Target = aRegister <|> bRegister <|> cRegister <|> dRegister <|> eRegister 
     hRegister = char 'H' >> return Load8H
     lRegister = char 'L' >> return Load8L
     atHL = string "(HL)" >> return Load8AtHL
-
-load8I :: Parsec String st Instruction
-load8I = do
-  _ <- string "LD" >> spaces1
-  r <- load8Target
-  _ <- spaces >> char ',' >> spaces
-  v <- word8
-  return $ Load8I r v
+    immediate = liftM Load8I word8
 
 load8 :: Parsec String st Instruction
 load8 = do
   _ <- string "LD" >> spaces1
-  t <- load8Target
+  t <- load8Part
   _ <- spaces >> char ',' >> spaces
-  s <- load8Target
+  s <- load8Part
   return $ Load8 t s
 
 nop :: Parsec String st Instruction
@@ -66,7 +59,7 @@ stop :: Parsec String st Instruction
 stop = string "STOP" >> return Stop
 
 instruction :: Parsec String st Instruction
-instruction = try load8I <|> try load8 <|> try nop <|> stop
+instruction = try nop <|> try stop <|> load8
 
 comment :: Parsec String st ()
 comment = do

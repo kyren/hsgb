@@ -65,8 +65,8 @@ nop = string "NOP" >> return NoOp
 stop :: Parsec String st Instruction
 stop = string "STOP" >> return Stop
 
-instructionPart :: Parsec String st Instruction
-instructionPart = try load8I <|> try load8 <|> try nop <|> stop
+instruction :: Parsec String st Instruction
+instruction = try load8I <|> try load8 <|> try nop <|> stop
 
 comment :: Parsec String st ()
 comment = do
@@ -74,34 +74,23 @@ comment = do
   _ <- many (noneOf "\r\n")
   return ()
 
-endLinePart :: Parsec String st ()
-endLinePart = do
-  skipMany (oneOf " \t")
-  optional comment
-  _ <- string "\r\n" <|> string "\n"
-  return ()
-
 instructionLine :: Parsec String st (Maybe Instruction)
 instructionLine = do
   skipMany (oneOf " \t")
-  instruction <- instructionPart
-  endLinePart
-  if validInstruction instruction
-     then return $ Just instruction
-     else fail "Invalid Instruction"
-
-blankLine :: Parsec String st (Maybe Instruction)
-blankLine = do
-  endLinePart
-  return Nothing
-
-instructionOrBlankLine :: Parsec String st (Maybe Instruction)
-instructionOrBlankLine = try blankLine <|> instructionLine
+  mi <- optionMaybe instruction
+  skipMany (oneOf " \t")
+  optional comment
+  case mi of
+    Just i ->
+      if validInstruction i
+         then return $ Just i
+         else fail "Invalid Instruction"
+    Nothing -> return Nothing
 
 instructions :: Parsec String st [Instruction]
 instructions = do
-  res <- liftM catMaybes $ many instructionOrBlankLine
-  eof
+  res <- liftM catMaybes $ instructionLine `sepBy1` endOfLine
+  optional endOfLine
   return res
 
 parseInstructions :: String -> Either String [Instruction]

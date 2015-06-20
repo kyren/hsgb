@@ -32,10 +32,10 @@ data Register
   deriving (Show, Eq)
 
 data Cond
-  = NZero
-  | Zero
-  | NCarry
+  = Zero
+  | NZero
   | Carry
+  | NCarry
   deriving (Show, Eq)
 
 data ResetAddress

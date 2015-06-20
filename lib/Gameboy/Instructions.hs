@@ -73,8 +73,8 @@ data Instruction
   | LDI_A_ATHL
   | LDI_ATHL_A
 
-  | LDH_ATN_A
-  | LDH_A_ATN
+  | LDH_A_ATN Word8
+  | LDH_ATN_A Word8
 
   | LD_BC_NN Word16
   | LD_DE_NN Word16

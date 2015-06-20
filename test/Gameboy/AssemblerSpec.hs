@@ -47,11 +47,25 @@ testLoad8 = it "parses 8 bit loads" $ do
   instructionMatches "LD (BC), A" LD_ATBC_A
   instructionMatches "LD (DE), A" LD_ATDE_A
   instructionMatches "LD ($d00d), A" $ LD_ATNN_A 0xd00d
+  instructionMatches "LDD A, (HL)" LDD_A_ATHL
+  instructionMatches "LDD (HL), A" LDD_ATHL_A
+  instructionMatches "LDI A, (HL)" LDI_A_ATHL
+  instructionMatches "LDI (HL), A" LDI_ATHL_A
+  instructionMatches "LDH A, ($fe)" $ LDH_A_ATN 0xfe
+  instructionMatches "LDH ($ef), A" $ LDH_ATN_A 0xef
   assemblyFails "LD (HL), (HL)"
   assemblyFails "LD C, (DE)"
   assemblyFails "LD C, ($ffff)"
+
+testLoad16 :: Spec
+testLoad16 = it "parses 16 bit loads" $ do
+  instructionMatches "LD BC, $feee" $ LD_BC_NN 0xfeee
+  instructionMatches "LD DE, $f111" $ LD_DE_NN 0xf111
+  instructionMatches "LD HL, $f000" $ LD_HL_NN 0xf000
+  instructionMatches "LD SP, $faaa" $ LD_SP_NN 0xfaaa
 
 spec :: Spec
 spec = describe "assembly" $ do
   testParsing
   testLoad8
+  testLoad16

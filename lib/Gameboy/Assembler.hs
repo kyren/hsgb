@@ -17,6 +17,7 @@ data RegisterPair
   | BCRegPair
   | DERegPair
   | HLRegPair
+  deriving (Show)
 
 data Addr
   = AtHL
@@ -25,6 +26,7 @@ data Addr
   | AtDE
   | AtNN Word16
   | AtN Word8
+  deriving (Show)
 
 data Argument 
   = RegArg Register
@@ -32,6 +34,8 @@ data Argument
   | AddrArg Addr
   | I8Arg Word8
   | I16Arg Word16
+  | SPArg
+  deriving (Show)
 
 hexToInt :: String -> Integer
 hexToInt = foldl (\a i -> a * 16 + fromIntegral (digitToInt i)) 0
@@ -84,15 +88,36 @@ addr = do
     nn = AtNN <$> immediate16
     n = AtN <$> immediate8
 
-argument :: Parsec String st Argument
-argument = (RegArg <$> register) <|> (RegPairArg <$> registerPair) <|> (AddrArg <$> addr) <|> (I8Arg <$> immediate8) <|> (I16Arg <$> immediate16)
+sp :: Parsec String st Argument
+sp = string "SP" >> return SPArg
 
-load :: Parsec String st Instruction
-load = do
-    _ <- string "LD" >> spaces1
-    t <- argument
-    _ <- spaces >> char ',' >> spaces
-    s <- argument
+argument :: Parsec String st Argument
+argument
+  = try (AddrArg <$> addr)
+  <|> try (I16Arg <$> immediate16)
+  <|> try (I8Arg <$> immediate8)
+  <|> try (RegPairArg <$> registerPair)
+  <|> RegArg <$> register
+  <|> sp
+
+{-
+instructionArg1 :: String -> Parsec String st Argument
+instructionArg1 inst = do
+  _ <- string inst >> spaces1
+  argument
+-}
+
+instructionArg2 :: String -> Parsec String st (Argument, Argument)
+instructionArg2 inst = do
+  _ <- string inst >> spaces1
+  a1 <- argument
+  _ <- spaces >> char ',' >> spaces
+  a2 <- argument
+  return (a1, a2)
+
+load8 :: Parsec String st Instruction
+load8 = do
+    (t, s) <- instructionArg2 "LD"
     encode t s
   where
     encode (RegArg t) (RegArg s) = return $ LD_R_R t s
@@ -110,6 +135,44 @@ load = do
     encode (AddrArg (AtNN nn)) (RegArg ARegister) = return $ LD_ATNN_A nn
     encode _ _ = fail "Invalid LD instruction"
 
+load8dec :: Parsec String st Instruction
+load8dec = do
+    (t, s) <- instructionArg2 "LDD"
+    encode t s
+  where
+    encode (RegArg ARegister) (AddrArg AtHL) = return LDD_A_ATHL
+    encode (AddrArg AtHL) (RegArg ARegister) = return LDD_ATHL_A
+    encode _ _ = fail "Invalid LDD instruction"
+
+load8inc :: Parsec String st Instruction
+load8inc = do
+    (t, s) <- instructionArg2 "LDI"
+    encode t s
+  where
+    encode (RegArg ARegister) (AddrArg AtHL) = return LDI_A_ATHL
+    encode (AddrArg AtHL) (RegArg ARegister) = return LDI_ATHL_A
+    encode _ _ = fail "Invalid LDI instruction"
+
+loadh :: Parsec String st Instruction
+loadh = do
+    (t, s) <- instructionArg2 "LDH"
+    encode t s
+  where
+    encode (RegArg ARegister) (AddrArg (AtN n)) = return $ LDH_A_ATN n
+    encode (AddrArg (AtN n)) (RegArg ARegister) = return $ LDH_ATN_A n
+    encode _ _ = fail "Invalid LDH instruction"
+
+load16 :: Parsec String st Instruction
+load16 = do
+    (t, s) <- instructionArg2 "LD"
+    encode t s
+  where
+    encode (RegPairArg BCRegPair) (I16Arg nn) = return $ LD_BC_NN nn
+    encode (RegPairArg DERegPair) (I16Arg nn) = return $ LD_DE_NN nn
+    encode (RegPairArg HLRegPair) (I16Arg nn) = return $ LD_HL_NN nn
+    encode SPArg (I16Arg nn) = return $ LD_SP_NN nn
+    encode _ _ = fail "Invalid LD instruction"
+
 nop :: Parsec String st Instruction
 nop = string "NOP" >> return NOP
 
@@ -117,7 +180,14 @@ stop :: Parsec String st Instruction
 stop = string "STOP" >> return STOP
 
 instruction :: Parsec String st Instruction
-instruction = try nop <|> try stop <|> load
+instruction
+  = try load8
+  <|> try load8dec
+  <|> try load8inc
+  <|> try loadh
+  <|> try load16
+  <|> try nop
+  <|> stop
 
 comment :: Parsec String st ()
 comment = do
@@ -137,6 +207,7 @@ instructions :: Parsec String st [Instruction]
 instructions = do
   res <- liftM catMaybes $ instructionLine `sepBy1` endOfLine
   optional endOfLine
+  eof
   return res
 
 parseInstructions :: String -> Either String [Instruction]

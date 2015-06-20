@@ -5,6 +5,7 @@ test: setup
 	cabal test
 
 clean:
+	cabal clean
 	cabal sandbox delete
 
 setup:

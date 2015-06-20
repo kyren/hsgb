@@ -14,60 +14,65 @@ step = do
     Just i -> doInstruction i
     Nothing -> fail "invalid opcode"
 
-doInstruction :: (CPU m, Memory m) => Instruction -> m ()
-doInstruction NoOp = tick 1
-doInstruction Stop = stop >> tick 4
--- TODO: timing unimplemented here
-doInstruction (Load8 t s) = getLoad8Part s >>= setLoad8Part t >> tick 0
-
-getLoad8Part :: (CPU m, Memory m) => Load8Part -> m Word8
-getLoad8Part Load8A = getARegister
-getLoad8Part Load8B = getBRegister
-getLoad8Part Load8C = getCRegister
-getLoad8Part Load8D = getDRegister
-getLoad8Part Load8E = getERegister
-getLoad8Part Load8H = getHRegister
-getLoad8Part Load8L = getLRegister
-getLoad8Part Load8AtBC = do
-  b <- getBRegister
-  c <- getCRegister
-  getMemory (makeWord c b)
-getLoad8Part Load8AtDE = do
-  d <- getDRegister
-  e <- getERegister
-  getMemory (makeWord e d)
-getLoad8Part Load8AtHL = do
-  h <- getHRegister
-  l <- getLRegister
-  getMemory (makeWord l h)
-getLoad8Part (Load8AtNN n) = getMemory n
-getLoad8Part (Load8I n) = return n
-
-setLoad8Part :: (CPU m, Memory m) => Load8Part -> Word8 -> m ()
-setLoad8Part Load8A = setARegister
-setLoad8Part Load8B = setBRegister
-setLoad8Part Load8C = setCRegister
-setLoad8Part Load8D = setDRegister
-setLoad8Part Load8E = setERegister
-setLoad8Part Load8H = setHRegister
-setLoad8Part Load8L = setLRegister
-setLoad8Part Load8AtBC = \v -> do
-  b <- getBRegister
-  c <- getCRegister
-  setMemory (makeWord c b) v
-setLoad8Part Load8AtDE = \v -> do
-  d <- getDRegister
-  e <- getERegister
-  setMemory (makeWord e d) v
-setLoad8Part Load8AtHL = \v -> do
-  h <- getHRegister
-  l <- getLRegister
-  setMemory (makeWord l h) v
-setLoad8Part (Load8AtNN nn) = setMemory nn
-setLoad8Part (Load8I _) = fail "invalid operation"
-
 getNextPC :: (CPU m, Memory m) => m Word8
 getNextPC = do
   pc <- getProgramCounter
   setProgramCounter (pc + 1)
   getMemory pc
+
+getRegister :: (CPU m) => Register -> m Word8
+getRegister ARegister = getARegister
+getRegister BRegister = getBRegister
+getRegister CRegister = getCRegister
+getRegister DRegister = getDRegister
+getRegister ERegister = getERegister
+getRegister HRegister = getHRegister
+getRegister LRegister = getLRegister
+
+setRegister :: (CPU m) => Register -> Word8 -> m ()
+setRegister ARegister = setARegister
+setRegister BRegister = setBRegister
+setRegister CRegister = setCRegister
+setRegister DRegister = setDRegister
+setRegister ERegister = setERegister
+setRegister HRegister = setHRegister
+setRegister LRegister = setLRegister
+
+getAtHL :: (CPU m, Memory m) => m Word8
+getAtHL = do
+  h <- getHRegister
+  l <- getLRegister
+  getMemory (makeWord l h)
+
+setAtHL :: (CPU m, Memory m) => Word8 -> m ()
+setAtHL v = do
+  h <- getHRegister
+  l <- getLRegister
+  setMemory (makeWord l h) v
+
+doInstruction :: (CPU m, Memory m) => Instruction -> m ()
+
+doInstruction (LD_R_R t s) = do
+  getRegister s >>= setRegister t
+  tick 4
+
+doInstruction (LD_R_N t n) = do
+  setRegister t n
+  tick 8
+
+doInstruction (LD_R_ATHL t) = do
+  getAtHL >>= setRegister t
+  tick 8
+
+doInstruction (LD_ATHL_R s) = do
+  getRegister s >>= setAtHL
+  tick 8
+
+doInstruction (LD_ATHL_N n) = do
+  setAtHL n
+  tick 12
+
+doInstruction NOP = tick 4
+doInstruction STOP = stop >> tick 16
+
+doInstruction _ = error "instruction step unimplemented!"

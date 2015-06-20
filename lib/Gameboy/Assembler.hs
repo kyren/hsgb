@@ -73,7 +73,7 @@ registerPair = af <|> bc <|> de <|> hl
 addr :: Parsec String st Addr
 addr = do
     _ <- char '('
-    res <- hl <|> c <|> bc <|> de <|> try n <|> nn
+    res <- hl <|> c <|> bc <|> de <|> try nn <|> n
     _ <- char ')'
     return res
   where
@@ -81,8 +81,8 @@ addr = do
     c = string "C" >> return AtC
     bc = string "BC" >> return AtBC
     de = string "DE" >> return AtDE
-    n = AtN <$> immediate8
     nn = AtNN <$> immediate16
+    n = AtN <$> immediate8
 
 argument :: Parsec String st Argument
 argument = (RegArg <$> register) <|> (RegPairArg <$> registerPair) <|> (AddrArg <$> addr) <|> (I8Arg <$> immediate8) <|> (I16Arg <$> immediate16)
@@ -100,6 +100,14 @@ load = do
     encode (RegArg t) (I8Arg n) = return $ LD_R_N t n
     encode (AddrArg AtHL) (RegArg s) = return $ LD_ATHL_R s
     encode (AddrArg AtHL) (I8Arg n) = return $ LD_ATHL_N n
+    encode (RegArg ARegister) (AddrArg AtC) = return LD_A_ATC
+    encode (RegArg ARegister) (AddrArg AtBC) = return LD_A_ATBC
+    encode (RegArg ARegister) (AddrArg AtDE) = return LD_A_ATDE
+    encode (RegArg ARegister) (AddrArg (AtNN nn)) = return $ LD_A_ATNN nn
+    encode (AddrArg AtC) (RegArg ARegister) = return LD_ATC_A
+    encode (AddrArg AtBC) (RegArg ARegister) = return LD_ATBC_A
+    encode (AddrArg AtDE) (RegArg ARegister) = return LD_ATDE_A
+    encode (AddrArg (AtNN nn)) (RegArg ARegister) = return $ LD_ATNN_A nn
     encode _ _ = fail "Invalid LD instruction"
 
 nop :: Parsec String st Instruction

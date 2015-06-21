@@ -103,9 +103,9 @@ data Instruction
   | ADC_A_N Word8
   | ADC_A_ATHL
 
-  | SUB_A_R Register
-  | SUB_A_N Word8
-  | SUB_A_ATHL
+  | SUB_R Register
+  | SUB_N Word8
+  | SUB_ATHL
 
   | SBC_A_R Register
   | SBC_A_N Word8

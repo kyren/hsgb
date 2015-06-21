@@ -56,64 +56,84 @@ immediate16 = do
   digits <- count 4 hexDigit
   return $ fromIntegral $ hexToInt digits
 
-register :: Parsec String st Register
-register = a <|> b <|> c <|> d <|> e <|> h <|> l
+registerArg :: Parsec String st Argument
+registerArg = a <|> b <|> c <|> d <|> e <|> h <|> l
   where
-    a = char 'A' >> return ARegister
-    b = char 'B' >> return BRegister
-    c = char 'C' >> return CRegister
-    d = char 'D' >> return DRegister
-    e = char 'E' >> return ERegister
-    h = char 'H' >> return HRegister
-    l = char 'L' >> return LRegister
+    a = char 'A' >> return (RegisterArg ARegister)
+    b = char 'B' >> return (RegisterArg BRegister)
+    c = char 'C' >> return (RegisterArg CRegister)
+    d = char 'D' >> return (RegisterArg DRegister)
+    e = char 'E' >> return (RegisterArg ERegister)
+    h = char 'H' >> return (RegisterArg HRegister)
+    l = char 'L' >> return (RegisterArg LRegister)
 
-register16 :: Parsec String st Register16
-register16 = af <|> bc <|> de <|> hl <|> sp
+register16Arg :: Parsec String st Argument
+register16Arg = af <|> bc <|> de <|> hl <|> sp
   where
-    af = string "AF" >> return AFRegister16
-    bc = string "BC" >> return BCRegister16
-    de = string "DE" >> return DERegister16
-    hl = string "HL" >> return HLRegister16
-    sp = string "SP" >> return SPRegister16
+    af = string "AF" >> return (Register16Arg AFRegister16)
+    bc = string "BC" >> return (Register16Arg BCRegister16)
+    de = string "DE" >> return (Register16Arg DERegister16)
+    hl = string "HL" >> return (Register16Arg HLRegister16)
+    sp = string "SP" >> return (Register16Arg SPRegister16)
 
-addr :: Parsec String st Address
-addr = do
+addressArg :: Parsec String st Argument
+addressArg = do
     _ <- char '('
-    res <- hl <|> c <|> bc <|> de <|> try nn <|> n
+    r <- hl <|> c <|> bc <|> de <|> try nn <|> n
     _ <- char ')'
-    return res
+    return r
   where
-    hl = string "HL" >> return AtHL
-    c = string "C" >> return AtC
-    bc = string "BC" >> return AtBC
-    de = string "DE" >> return AtDE
-    nn = AtNN <$> immediate16
-    n = AtN <$> immediate8
+    hl = string "HL" >> return (AddressArg AtHL)
+    c = string "C" >> return (AddressArg AtC)
+    bc = string "BC" >> return (AddressArg AtBC)
+    de = string "DE" >> return (AddressArg AtDE)
+    nn = AddressArg <$> AtNN <$> immediate16
+    n = AddressArg <$> AtN <$> immediate8
 
-argument :: Parsec String st Argument
-argument
-  = try (AddressArg <$> addr)
+regularArg :: Parsec String st Argument
+regularArg
+  = try addressArg
   <|> try (I16Arg <$> immediate16)
   <|> try (I8Arg <$> immediate8)
-  <|> try (Register16Arg <$> register16)
-  <|> RegisterArg <$> register
+  <|> try register16Arg
+  <|> registerArg
 
-instructionArg1 :: String -> Parsec String st Argument
-instructionArg1 inst = do
-  _ <- string inst >> spaces1
-  argument
+bitArg :: Parsec String st Bit
+bitArg = b0 <|> b1 <|> b2 <|> b3 <|> b4 <|> b5 <|> b6 <|> b7
+  where
+    b0 = char '0' >> return Bit0
+    b1 = char '1' >> return Bit1
+    b2 = char '2' >> return Bit2
+    b3 = char '3' >> return Bit3
+    b4 = char '4' >> return Bit4
+    b5 = char '5' >> return Bit5
+    b6 = char '6' >> return Bit6
+    b7 = char '7' >> return Bit7
 
-instructionArg2 :: String -> Parsec String st (Argument, Argument)
-instructionArg2 inst = do
+condArg :: Parsec String st Cond
+condArg = z <|> c <|> try nz <|> nc
+  where
+    z = char 'Z' >> return Zero
+    c = char 'C' >> return Carry
+    nz = string "NZ" >> return NZero
+    nc = string "NC" >> return NCarry
+
+instruction1Arg :: String -> Parsec String st a1 -> Parsec String st a1
+instruction1Arg inst arg1 = do
   _ <- string inst >> spaces1
-  a1 <- argument
+  arg1
+
+instruction2Arg :: String -> Parsec String st a1 -> Parsec String st a2 -> Parsec String st (a1, a2)
+instruction2Arg inst arg1 arg2 = do
+  _ <- string inst >> spaces1
+  a1 <- arg1
   _ <- spaces >> char ',' >> spaces
-  a2 <- argument
+  a2 <- arg2
   return (a1, a2)
 
 load8 :: Parsec String st Instruction
 load8 = do
-    (t, s) <- instructionArg2 "LD"
+    (t, s) <- instruction2Arg "LD" regularArg regularArg
     encode t s
   where
     encode (RegisterArg t) (RegisterArg s) = return $ LD_R_R t s
@@ -133,7 +153,7 @@ load8 = do
 
 load8dec :: Parsec String st Instruction
 load8dec = do
-    (t, s) <- instructionArg2 "LDD"
+    (t, s) <- instruction2Arg "LDD" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (AddressArg AtHL) = return LDD_A_ATHL
@@ -142,7 +162,7 @@ load8dec = do
 
 load8inc :: Parsec String st Instruction
 load8inc = do
-    (t, s) <- instructionArg2 "LDI"
+    (t, s) <- instruction2Arg "LDI" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (AddressArg AtHL) = return LDI_A_ATHL
@@ -151,7 +171,7 @@ load8inc = do
 
 loadh :: Parsec String st Instruction
 loadh = do
-    (t, s) <- instructionArg2 "LDH"
+    (t, s) <- instruction2Arg "LDH" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (AddressArg (AtN n)) = return $ LDH_A_ATN n
@@ -160,7 +180,7 @@ loadh = do
 
 load16 :: Parsec String st Instruction
 load16 = do
-    (t, s) <- instructionArg2 "LD"
+    (t, s) <- instruction2Arg "LD" regularArg regularArg
     encode t s
   where
     encode (Register16Arg BCRegister16) (I16Arg nn) = return $ LD_BC_NN nn
@@ -173,14 +193,14 @@ load16 = do
 
 loadhl :: Parsec String st Instruction
 loadhl = do
-    (t, s) <- instructionArg2 "LDHL"
+    (t, s) <- instruction2Arg "LDHL" regularArg regularArg
     encode t s
   where
     encode (Register16Arg SPRegister16) (I8Arg n) = return $ LDHL_SP_N n
     encode _ _ = fail "Invalid LDHL instruction"
 
 push :: Parsec String st Instruction
-push = instructionArg1 "PUSH" >>= encode
+push = instruction1Arg "PUSH" regularArg >>= encode
   where
     encode (Register16Arg AFRegister16) = return PUSH_AF
     encode (Register16Arg BCRegister16) = return PUSH_BC
@@ -189,7 +209,7 @@ push = instructionArg1 "PUSH" >>= encode
     encode _ = fail "Invalid PUSH instruction"
 
 pop :: Parsec String st Instruction
-pop = instructionArg1 "POP" >>= encode
+pop = instruction1Arg "POP" regularArg >>= encode
   where
     encode (Register16Arg AFRegister16) = return POP_AF
     encode (Register16Arg BCRegister16) = return POP_BC
@@ -199,7 +219,7 @@ pop = instructionArg1 "POP" >>= encode
 
 add :: Parsec String st Instruction
 add = do
-    (t, s) <- instructionArg2 "ADD"
+    (t, s) <- instruction2Arg "ADD" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (RegisterArg r) = return $ ADD_A_R r
@@ -214,7 +234,7 @@ add = do
 
 adc :: Parsec String st Instruction
 adc = do
-    (t, s) <- instructionArg2 "ADC"
+    (t, s) <- instruction2Arg "ADC" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (RegisterArg r) = return $ ADC_A_R r
@@ -223,7 +243,7 @@ adc = do
     encode _ _ = fail "Invalid ADC instruction"
 
 sub :: Parsec String st Instruction
-sub = instructionArg1 "SUB" >>= encode
+sub = instruction1Arg "SUB" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ SUB_R r
     encode (I8Arg n) = return $ SUB_N n
@@ -232,7 +252,7 @@ sub = instructionArg1 "SUB" >>= encode
 
 sbc :: Parsec String st Instruction
 sbc = do
-    (t, s) <- instructionArg2 "SBC"
+    (t, s) <- instruction2Arg "SBC" regularArg regularArg
     encode t s
   where
     encode (RegisterArg ARegister) (RegisterArg r) = return $ SBC_A_R r
@@ -241,7 +261,7 @@ sbc = do
     encode _ _ = fail "Invalid SBC instruction"
 
 and :: Parsec String st Instruction
-and = instructionArg1 "AND" >>= encode
+and = instruction1Arg "AND" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ AND_R r
     encode (I8Arg n) = return $ AND_N n
@@ -249,7 +269,7 @@ and = instructionArg1 "AND" >>= encode
     encode _ = fail "Invalid AND instruction"
 
 or :: Parsec String st Instruction
-or = instructionArg1 "OR" >>= encode
+or = instruction1Arg "OR" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ OR_R r
     encode (I8Arg n) = return $ OR_N n
@@ -257,7 +277,7 @@ or = instructionArg1 "OR" >>= encode
     encode _ = fail "Invalid OR instruction"
 
 xor :: Parsec String st Instruction
-xor = instructionArg1 "XOR" >>= encode
+xor = instruction1Arg "XOR" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ XOR_R r
     encode (I8Arg n) = return $ XOR_N n
@@ -265,7 +285,7 @@ xor = instructionArg1 "XOR" >>= encode
     encode _ = fail "Invalid XOR instruction"
 
 cp :: Parsec String st Instruction
-cp = instructionArg1 "CP" >>= encode
+cp = instruction1Arg "CP" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ CP_R r
     encode (I8Arg n) = return $ CP_N n
@@ -273,7 +293,7 @@ cp = instructionArg1 "CP" >>= encode
     encode _ = fail "Invalid CP instruction"
 
 inc :: Parsec String st Instruction
-inc = instructionArg1 "INC" >>= encode
+inc = instruction1Arg "INC" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ INC_R r
     encode (AddressArg AtHL) = return INC_ATHL
@@ -284,7 +304,7 @@ inc = instructionArg1 "INC" >>= encode
     encode _ = fail "Invalid INC instruction"
 
 dec :: Parsec String st Instruction
-dec = instructionArg1 "DEC" >>= encode
+dec = instruction1Arg "DEC" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ DEC_R r
     encode (AddressArg AtHL) = return DEC_ATHL
@@ -295,7 +315,7 @@ dec = instructionArg1 "DEC" >>= encode
     encode _ = fail "Invalid DEC instruction"
 
 swap :: Parsec String st Instruction
-swap = instructionArg1 "SWAP" >>= encode
+swap = instruction1Arg "SWAP" regularArg >>= encode
   where
     encode (RegisterArg r) = return $ SWAP_R r
     encode (AddressArg AtHL) = return SWAP_ATHL
@@ -340,6 +360,137 @@ rrca = string "RRCA" >> return RRCA
 rra :: Parsec String st Instruction
 rra = string "RRA" >> return RRA
 
+rlc :: Parsec String st Instruction
+rlc = instruction1Arg "RLC" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ RLC_R r
+    encode (AddressArg AtHL) = return RLC_ATHL
+    encode _ = fail "Invalid RLC instruction"
+
+rl :: Parsec String st Instruction
+rl = instruction1Arg "RL" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ RL_R r
+    encode (AddressArg AtHL) = return RL_ATHL
+    encode _ = fail "Invalid RL instruction"
+
+rrc :: Parsec String st Instruction
+rrc = instruction1Arg "RRC" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ RRC_R r
+    encode (AddressArg AtHL) = return RRC_ATHL
+    encode _ = fail "Invalid RRC instruction"
+
+rr :: Parsec String st Instruction
+rr = instruction1Arg "RR" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ RR_R r
+    encode (AddressArg AtHL) = return RR_ATHL
+    encode _ = fail "Invalid RR instruction"
+
+sla :: Parsec String st Instruction
+sla = instruction1Arg "SLA" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ SLA_R r
+    encode (AddressArg AtHL) = return SLA_ATHL
+    encode _ = fail "Invalid SLA instruction"
+
+sra :: Parsec String st Instruction
+sra = instruction1Arg "SRA" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ SRA_R r
+    encode (AddressArg AtHL) = return SRA_ATHL
+    encode _ = fail "Invalid SRA instruction"
+
+srl :: Parsec String st Instruction
+srl = instruction1Arg "SRL" regularArg >>= encode
+  where
+    encode (RegisterArg r) = return $ SRL_R r
+    encode (AddressArg AtHL) = return SRL_ATHL
+    encode _ = fail "Invalid SRL instruction"
+
+bit :: Parsec String st Instruction
+bit = do
+    (b, t) <- instruction2Arg "BIT" bitArg regularArg
+    encode b t
+  where
+    encode b (RegisterArg r) = return $ BIT_B_R b r
+    encode b (AddressArg AtHL) = return $ BIT_B_ATHL b
+    encode _ _ = fail "Invalid BIT instruction"
+
+set :: Parsec String st Instruction
+set = do
+    (b, t) <- instruction2Arg "SET" bitArg regularArg
+    encode b t
+  where
+    encode b (RegisterArg r) = return $ SET_B_R b r
+    encode b (AddressArg AtHL) = return $ SET_B_ATHL b
+    encode _ _ = fail "Invalid SET instruction"
+
+res :: Parsec String st Instruction
+res = do
+    (b, t) <- instruction2Arg "RES" bitArg regularArg
+    encode b t
+  where
+    encode b (RegisterArg r) = return $ RES_B_R b r
+    encode b (AddressArg AtHL) = return $ RES_B_ATHL b
+    encode _ _ = fail "Invalid RES instruction"
+
+jp :: Parsec String st Instruction
+jp = try jp2 <|> jp1
+  where
+    jp2 = do
+        (c, a) <- instruction2Arg "JP" condArg regularArg
+        enc2 c a
+    jp1 = instruction1Arg "JP" regularArg >>= enc1
+    enc1 (I16Arg nn) = return $ JP_NN nn
+    enc1 (AddressArg AtHL) = return JP_ATHL
+    enc1 _ = fail "Invalid JP instruction"
+    enc2 c (I16Arg nn) = return $ JP_C_NN c nn
+    enc2 _ _ = fail "Invalid JP instruction"
+
+jr :: Parsec String st Instruction
+jr = try jr2 <|> jr1
+  where
+    jr2 = do
+        (c, a) <- instruction2Arg "JR" condArg regularArg
+        enc2 c a
+    jr1 = instruction1Arg "JR" regularArg >>= enc1
+    enc1 (I8Arg n) = return $ JR_N n
+    enc1 _ = fail "Invalid JR instruction"
+    enc2 c (I8Arg n) = return $ JR_C_N c n
+    enc2 _ _ = fail "Invalid JR instruction"
+
+call :: Parsec String st Instruction
+call = try call2 <|> call1
+  where
+    call2 = do
+        (c, a) <- instruction2Arg "CALL" condArg immediate16
+        return $ CALL_C_NN c a
+    call1 = CALL_NN <$> instruction1Arg "CALL" immediate16
+
+rst :: Parsec String st Instruction
+rst = instruction1Arg "RST" immediate8 >>= encode
+  where
+    encode 0x00 = return $ RST_RA Reset00
+    encode 0x08 = return $ RST_RA Reset08
+    encode 0x10 = return $ RST_RA Reset10
+    encode 0x18 = return $ RST_RA Reset18
+    encode 0x20 = return $ RST_RA Reset20
+    encode 0x28 = return $ RST_RA Reset28
+    encode 0x30 = return $ RST_RA Reset30
+    encode 0x38 = return $ RST_RA Reset38
+    encode _ = fail "Invalid RST address"
+
+ret :: Parsec String st Instruction
+ret = try ret1 <|> ret0
+  where
+    ret1 = RET_C <$> instruction1Arg "RET" condArg
+    ret0 = string "RET" >> return RET
+
+reti :: Parsec String st Instruction
+reti = string "RETI" >> return RETI
+
 instruction :: Parsec String st Instruction
 instruction
   = try load8
@@ -373,7 +524,23 @@ instruction
   <|> try rlca
   <|> try rla
   <|> try rrca
-  <|> rra
+  <|> try rra
+  <|> try rlc
+  <|> try rl
+  <|> try rrc
+  <|> try rr
+  <|> try sla
+  <|> try sra
+  <|> try srl
+  <|> try bit
+  <|> try set
+  <|> try res
+  <|> try jp
+  <|> try jr
+  <|> try call
+  <|> try rst
+  <|> try reti
+  <|> ret
 
 comment :: Parsec String st ()
 comment = do
@@ -391,10 +558,10 @@ instructionLine = do
 
 instructions :: Parsec String st [Instruction]
 instructions = do
-  res <- liftM catMaybes $ instructionLine `sepBy1` endOfLine
+  r <- liftM catMaybes $ instructionLine `sepBy1` endOfLine
   optional endOfLine
   eof
-  return res
+  return r
 
 parseInstructions :: String -> Either String [Instruction]
 parseInstructions input = case parse instructions "" input of

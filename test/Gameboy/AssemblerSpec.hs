@@ -125,7 +125,7 @@ testSwap = it "parses swap instructions" $ do
   instructionMatches "SWAP (HL)" SWAP_ATHL
 
 testMiscNoArg :: Spec
-testMiscNoArg = it "tests misc no arg instructions" $ do
+testMiscNoArg = it "parses misc no arg instructions" $ do
   instructionMatches "DAA" DAA
   instructionMatches "CPL" CPL
   instructionMatches "CCF" CCF
@@ -140,6 +140,62 @@ testMiscNoArg = it "tests misc no arg instructions" $ do
   instructionMatches "RRCA" RRCA
   instructionMatches "RRA" RRA
 
+testRotatesShifts :: Spec
+testRotatesShifts = it "parses rotate and shift instructions" $ do
+  instructionMatches "RLC B" $ RLC_R BRegister
+  instructionMatches "RLC (HL)" RLC_ATHL
+  instructionMatches "RL D" $ RL_R DRegister
+  instructionMatches "RL (HL)" RL_ATHL
+  instructionMatches "RRC C" $ RRC_R CRegister
+  instructionMatches "RRC (HL)" RRC_ATHL
+  instructionMatches "RR E" $ RR_R ERegister
+  instructionMatches "RR (HL)" RR_ATHL
+  instructionMatches "SLA B" $ SLA_R BRegister
+  instructionMatches "SLA (HL)" SLA_ATHL
+  instructionMatches "SRA L" $ SRA_R LRegister
+  instructionMatches "SRA (HL)" SRA_ATHL
+  instructionMatches "SRL H" $ SRL_R HRegister
+  instructionMatches "SRL (HL)" SRL_ATHL
+
+testBitOps :: Spec
+testBitOps = it "parses bit set and res instructions" $ do
+  instructionMatches "BIT 7, B" $ BIT_B_R Bit7 BRegister
+  instructionMatches "BIT 0, (HL)" $ BIT_B_ATHL Bit0
+  instructionMatches "SET 6, B" $ SET_B_R Bit6 BRegister
+  instructionMatches "SET 1, (HL)" $ SET_B_ATHL Bit1
+  instructionMatches "RES 5, B" $ RES_B_R Bit5 BRegister
+  instructionMatches "RES 2, (HL)" $ RES_B_ATHL Bit2
+
+testJumps :: Spec
+testJumps = it "parses jp and jr instructions" $ do
+  instructionMatches "JP $dead" $ JP_NN 0xdead
+  instructionMatches "JP NZ, $beef" $ JP_C_NN NZero 0xbeef
+  instructionMatches "JP C, $f00f" $ JP_C_NN Carry 0xf00f
+  instructionMatches "JR Z, $00" $ JR_C_N Zero 0x00
+  instructionMatches "JR $be" $ JR_N 0xbe
+  instructionMatches "JR NC, $ef" $ JR_C_N NCarry 0xef
+
+testCall :: Spec
+testCall = it "parses call instructions" $ do
+  instructionMatches "CALL $f00f" $ CALL_NN 0xf00f
+  instructionMatches "CALL NC, $f00f" $ CALL_C_NN NCarry 0xf00f
+  instructionMatches "CALL C, $f00f" $ CALL_C_NN Carry 0xf00f
+  instructionMatches "CALL NZ, $f00f" $ CALL_C_NN NZero 0xf00f
+  instructionMatches "CALL Z, $f00f" $ CALL_C_NN Zero 0xf00f
+
+testRst :: Spec
+testRst = it "parses rst instruction" $ do
+  instructionMatches "RST $38" $ RST_RA Reset38
+  instructionMatches "RST $08" $ RST_RA Reset08
+  assemblyFails "RST $07"
+  assemblyFails "RST $37"
+
+testReturns :: Spec
+testReturns = it "parses ret / reti instructions" $ do
+  instructionMatches "RET" RET
+  instructionMatches "RET NZ" $ RET_C NZero
+  instructionMatches "RETI" RETI
+
 spec :: Spec
 spec = describe "assembly" $ do
   testParsing
@@ -152,3 +208,9 @@ spec = describe "assembly" $ do
   testIncDec
   testSwap
   testMiscNoArg
+  testRotatesShifts
+  testBitOps
+  testJumps
+  testCall
+  testRst
+  testReturns

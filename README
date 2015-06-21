@@ -1,0 +1,5 @@
+EARLY non-functional gameboy emulator written in haskell.
+
+Currently it has most of an assembler language and some frameworks to test fake
+gameboy programs in a test harness to implement further cpu ops, and not much
+else.

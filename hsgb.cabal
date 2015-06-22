@@ -20,9 +20,9 @@ executable emulator
   ghc-options:         -Wall -fwarn-incomplete-patterns
 
 test-suite spec
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is: Spec.hs
-  build-depends: base == 4.*, hspec >= 2.0, heredoc >= 0.2, gameboy
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base == 4.*, transformers >= 0.4, hspec >= 2.0, QuickCheck >= 2.4, heredoc >= 0.2, gameboy
   default-language:    Haskell2010
-  ghc-options: -Wall -fwarn-incomplete-patterns
+  ghc-options:         -Wall -fwarn-incomplete-patterns

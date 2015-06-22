@@ -4,9 +4,9 @@ module Gameboy.AssemblerSpec (spec) where
 
 import Data.Either
 import Test.Hspec
+import Text.Heredoc
 import Gameboy.Instructions
 import Gameboy.Assembler
-import Text.Heredoc
 
 assemblyMatches :: String -> [Instruction] -> Expectation
 assemblyMatches asm inst =

@@ -6,7 +6,6 @@ import Control.Monad.Trans.State
 import Test.Hspec
 import Test.QuickCheck
 import Gameboy.Instructions
-import Debug.Trace
 
 encodeInstructions :: [Instruction] -> [Word8]
 encodeInstructions = concatMap encodeInstruction

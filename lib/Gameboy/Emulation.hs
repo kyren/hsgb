@@ -14,14 +14,14 @@ step = do
     Just i -> doInstruction i
     Nothing -> fail "invalid opcode"
 
-getNextPC :: (CPU m, Memory m) => m (Maybe Word8)
+getNextPC :: (CPU m, Memory m) => m Word8
 getNextPC = do
   pc <- getProgramCounter
   if pc == maxBound
-    then return Nothing
+    then fail "PC wrapped"
     else do
       setProgramCounter (pc + 1)
-      Just <$> getMemory pc
+      getMemory pc
 
 getRegister :: (CPU m) => Register -> m Word8
 getRegister ARegister = getARegister

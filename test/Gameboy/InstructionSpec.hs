@@ -1,30 +1,33 @@
 module Gameboy.InstructionSpec (spec) where
 
 import Data.Word
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Test.Hspec
 import Test.QuickCheck
 import Gameboy.Instructions
+import Debug.Trace
 
 encodeInstructions :: [Instruction] -> [Word8]
 encodeInstructions = concatMap encodeInstruction
 
 decodeInstructions :: [Word8] -> Maybe [Instruction]
-decodeInstructions ws = evalState go (ws, [])
+decodeInstructions [] = Just []
+decodeInstructions ws = evalStateT go ws
   where
     go = do
       mi <- decodeInstruction getWord8
-      (restBytes, insts) <- get
+      restBytes <- get
       case mi of
-        Nothing -> return Nothing
-        Just i -> return $ (\x -> insts ++ [i] ++ x) <$> decodeInstructions restBytes
+        Nothing -> lift Nothing
+        Just i -> lift $ (i:) <$> decodeInstructions restBytes
     getWord8 = do
-      (bytes, insts) <- get
+      bytes <- get
       case bytes of 
-        [] -> return Nothing
+        [] -> lift Nothing
         (b:bs) -> do
-          put (bs, insts)
-          return $ Just b
+          put bs
+          lift $ Just b
 
 checkInverses :: [Word8] -> Bool
 checkInverses bs =

@@ -796,593 +796,593 @@ encodeInstruction (RET_C Carry) = [0xd8]
 
 encodeInstruction RETI = [0xd9]
 
-decodeInstruction :: (Monad m) => m (Maybe Word8) -> m (Maybe Instruction)
+decodeInstruction :: (Monad m) => m Word8 -> m (Maybe Instruction)
 decodeInstruction getWord8 = do
     w <- getWord8
     case w of
-      Just 0x7f -> dec (LD_R_R ARegister ARegister)
-      Just 0x78 -> dec (LD_R_R ARegister BRegister)
-      Just 0x79 -> dec (LD_R_R ARegister CRegister)
-      Just 0x7a -> dec (LD_R_R ARegister DRegister)
-      Just 0x7b -> dec (LD_R_R ARegister ERegister)
-      Just 0x7c -> dec (LD_R_R ARegister HRegister)
-      Just 0x7d -> dec (LD_R_R ARegister LRegister)
+      0x7f -> dec (LD_R_R ARegister ARegister)
+      0x78 -> dec (LD_R_R ARegister BRegister)
+      0x79 -> dec (LD_R_R ARegister CRegister)
+      0x7a -> dec (LD_R_R ARegister DRegister)
+      0x7b -> dec (LD_R_R ARegister ERegister)
+      0x7c -> dec (LD_R_R ARegister HRegister)
+      0x7d -> dec (LD_R_R ARegister LRegister)
 
-      Just 0x47 -> dec (LD_R_R BRegister ARegister)
-      Just 0x40 -> dec (LD_R_R BRegister BRegister)
-      Just 0x41 -> dec (LD_R_R BRegister CRegister)
-      Just 0x42 -> dec (LD_R_R BRegister DRegister)
-      Just 0x43 -> dec (LD_R_R BRegister ERegister)
-      Just 0x44 -> dec (LD_R_R BRegister HRegister)
-      Just 0x45 -> dec (LD_R_R BRegister LRegister)
+      0x47 -> dec (LD_R_R BRegister ARegister)
+      0x40 -> dec (LD_R_R BRegister BRegister)
+      0x41 -> dec (LD_R_R BRegister CRegister)
+      0x42 -> dec (LD_R_R BRegister DRegister)
+      0x43 -> dec (LD_R_R BRegister ERegister)
+      0x44 -> dec (LD_R_R BRegister HRegister)
+      0x45 -> dec (LD_R_R BRegister LRegister)
 
-      Just 0x4f -> dec (LD_R_R CRegister ARegister)
-      Just 0x48 -> dec (LD_R_R CRegister BRegister)
-      Just 0x49 -> dec (LD_R_R CRegister CRegister)
-      Just 0x4a -> dec (LD_R_R CRegister DRegister)
-      Just 0x4b -> dec (LD_R_R CRegister ERegister)
-      Just 0x4c -> dec (LD_R_R CRegister HRegister)
-      Just 0x4d -> dec (LD_R_R CRegister LRegister)
+      0x4f -> dec (LD_R_R CRegister ARegister)
+      0x48 -> dec (LD_R_R CRegister BRegister)
+      0x49 -> dec (LD_R_R CRegister CRegister)
+      0x4a -> dec (LD_R_R CRegister DRegister)
+      0x4b -> dec (LD_R_R CRegister ERegister)
+      0x4c -> dec (LD_R_R CRegister HRegister)
+      0x4d -> dec (LD_R_R CRegister LRegister)
 
-      Just 0x57 -> dec (LD_R_R DRegister ARegister)
-      Just 0x50 -> dec (LD_R_R DRegister BRegister)
-      Just 0x51 -> dec (LD_R_R DRegister CRegister)
-      Just 0x52 -> dec (LD_R_R DRegister DRegister)
-      Just 0x53 -> dec (LD_R_R DRegister ERegister)
-      Just 0x54 -> dec (LD_R_R DRegister HRegister)
-      Just 0x55 -> dec (LD_R_R DRegister LRegister)
+      0x57 -> dec (LD_R_R DRegister ARegister)
+      0x50 -> dec (LD_R_R DRegister BRegister)
+      0x51 -> dec (LD_R_R DRegister CRegister)
+      0x52 -> dec (LD_R_R DRegister DRegister)
+      0x53 -> dec (LD_R_R DRegister ERegister)
+      0x54 -> dec (LD_R_R DRegister HRegister)
+      0x55 -> dec (LD_R_R DRegister LRegister)
 
-      Just 0x5f -> dec (LD_R_R ERegister ARegister)
-      Just 0x58 -> dec (LD_R_R ERegister BRegister)
-      Just 0x59 -> dec (LD_R_R ERegister CRegister)
-      Just 0x5a -> dec (LD_R_R ERegister DRegister)
-      Just 0x5b -> dec (LD_R_R ERegister ERegister)
-      Just 0x5c -> dec (LD_R_R ERegister HRegister)
-      Just 0x5d -> dec (LD_R_R ERegister LRegister)
+      0x5f -> dec (LD_R_R ERegister ARegister)
+      0x58 -> dec (LD_R_R ERegister BRegister)
+      0x59 -> dec (LD_R_R ERegister CRegister)
+      0x5a -> dec (LD_R_R ERegister DRegister)
+      0x5b -> dec (LD_R_R ERegister ERegister)
+      0x5c -> dec (LD_R_R ERegister HRegister)
+      0x5d -> dec (LD_R_R ERegister LRegister)
 
-      Just 0x67 -> dec (LD_R_R HRegister ARegister)
-      Just 0x60 -> dec (LD_R_R HRegister BRegister)
-      Just 0x61 -> dec (LD_R_R HRegister CRegister)
-      Just 0x62 -> dec (LD_R_R HRegister DRegister)
-      Just 0x63 -> dec (LD_R_R HRegister ERegister)
-      Just 0x64 -> dec (LD_R_R HRegister HRegister)
-      Just 0x65 -> dec (LD_R_R HRegister LRegister)
+      0x67 -> dec (LD_R_R HRegister ARegister)
+      0x60 -> dec (LD_R_R HRegister BRegister)
+      0x61 -> dec (LD_R_R HRegister CRegister)
+      0x62 -> dec (LD_R_R HRegister DRegister)
+      0x63 -> dec (LD_R_R HRegister ERegister)
+      0x64 -> dec (LD_R_R HRegister HRegister)
+      0x65 -> dec (LD_R_R HRegister LRegister)
 
-      Just 0x6f -> dec (LD_R_R LRegister ARegister)
-      Just 0x68 -> dec (LD_R_R LRegister BRegister)
-      Just 0x69 -> dec (LD_R_R LRegister CRegister)
-      Just 0x6a -> dec (LD_R_R LRegister DRegister)
-      Just 0x6b -> dec (LD_R_R LRegister ERegister)
-      Just 0x6c -> dec (LD_R_R LRegister HRegister)
-      Just 0x6d -> dec (LD_R_R LRegister LRegister)
+      0x6f -> dec (LD_R_R LRegister ARegister)
+      0x68 -> dec (LD_R_R LRegister BRegister)
+      0x69 -> dec (LD_R_R LRegister CRegister)
+      0x6a -> dec (LD_R_R LRegister DRegister)
+      0x6b -> dec (LD_R_R LRegister ERegister)
+      0x6c -> dec (LD_R_R LRegister HRegister)
+      0x6d -> dec (LD_R_R LRegister LRegister)
 
-      Just 0x3e -> decn (LD_R_N ARegister)
-      Just 0x06 -> decn (LD_R_N BRegister)
-      Just 0x0e -> decn (LD_R_N CRegister)
-      Just 0x16 -> decn (LD_R_N DRegister)
-      Just 0x1e -> decn (LD_R_N ERegister)
-      Just 0x26 -> decn (LD_R_N HRegister)
-      Just 0x2e -> decn (LD_R_N LRegister)
+      0x3e -> decn (LD_R_N ARegister)
+      0x06 -> decn (LD_R_N BRegister)
+      0x0e -> decn (LD_R_N CRegister)
+      0x16 -> decn (LD_R_N DRegister)
+      0x1e -> decn (LD_R_N ERegister)
+      0x26 -> decn (LD_R_N HRegister)
+      0x2e -> decn (LD_R_N LRegister)
 
-      Just 0x7e -> dec (LD_R_ATHL ARegister)
-      Just 0x46 -> dec (LD_R_ATHL BRegister)
-      Just 0x4e -> dec (LD_R_ATHL CRegister)
-      Just 0x56 -> dec (LD_R_ATHL DRegister)
-      Just 0x5e -> dec (LD_R_ATHL ERegister)
-      Just 0x66 -> dec (LD_R_ATHL HRegister)
-      Just 0x6e -> dec (LD_R_ATHL LRegister)
+      0x7e -> dec (LD_R_ATHL ARegister)
+      0x46 -> dec (LD_R_ATHL BRegister)
+      0x4e -> dec (LD_R_ATHL CRegister)
+      0x56 -> dec (LD_R_ATHL DRegister)
+      0x5e -> dec (LD_R_ATHL ERegister)
+      0x66 -> dec (LD_R_ATHL HRegister)
+      0x6e -> dec (LD_R_ATHL LRegister)
 
-      Just 0x77 -> dec (LD_ATHL_R ARegister)
-      Just 0x70 -> dec (LD_ATHL_R BRegister)
-      Just 0x71 -> dec (LD_ATHL_R CRegister)
-      Just 0x72 -> dec (LD_ATHL_R DRegister)
-      Just 0x73 -> dec (LD_ATHL_R ERegister)
-      Just 0x74 -> dec (LD_ATHL_R HRegister)
-      Just 0x75 -> dec (LD_ATHL_R LRegister)
+      0x77 -> dec (LD_ATHL_R ARegister)
+      0x70 -> dec (LD_ATHL_R BRegister)
+      0x71 -> dec (LD_ATHL_R CRegister)
+      0x72 -> dec (LD_ATHL_R DRegister)
+      0x73 -> dec (LD_ATHL_R ERegister)
+      0x74 -> dec (LD_ATHL_R HRegister)
+      0x75 -> dec (LD_ATHL_R LRegister)
 
-      Just 0x36 -> decn LD_ATHL_N
+      0x36 -> decn LD_ATHL_N
 
-      Just 0xf2 -> dec LD_A_ATC
-      Just 0x0a -> dec LD_A_ATBC
-      Just 0x1a -> dec LD_A_ATDE
-      Just 0xfa -> decnn LD_A_ATNN
+      0xf2 -> dec LD_A_ATC
+      0x0a -> dec LD_A_ATBC
+      0x1a -> dec LD_A_ATDE
+      0xfa -> decnn LD_A_ATNN
 
-      Just 0xe2 -> dec LD_ATC_A
-      Just 0x02 -> dec LD_ATBC_A
-      Just 0x12 -> dec LD_ATDE_A
-      Just 0xea -> decnn LD_ATNN_A
+      0xe2 -> dec LD_ATC_A
+      0x02 -> dec LD_ATBC_A
+      0x12 -> dec LD_ATDE_A
+      0xea -> decnn LD_ATNN_A
 
-      Just 0x3a -> dec LDD_A_ATHL
-      Just 0x32 -> dec LDD_ATHL_A
+      0x3a -> dec LDD_A_ATHL
+      0x32 -> dec LDD_ATHL_A
 
-      Just 0x2a -> dec LDI_A_ATHL
-      Just 0x22 -> dec LDI_ATHL_A
+      0x2a -> dec LDI_A_ATHL
+      0x22 -> dec LDI_ATHL_A
 
-      Just 0xf0 -> decn LDH_A_ATN
-      Just 0xe0 -> decn LDH_ATN_A
+      0xf0 -> decn LDH_A_ATN
+      0xe0 -> decn LDH_ATN_A
 
-      Just 0x01 -> decnn LD_BC_NN
-      Just 0x11 -> decnn LD_DE_NN
-      Just 0x21 -> decnn LD_HL_NN
-      Just 0x31 -> decnn LD_SP_NN
+      0x01 -> decnn LD_BC_NN
+      0x11 -> decnn LD_DE_NN
+      0x21 -> decnn LD_HL_NN
+      0x31 -> decnn LD_SP_NN
 
-      Just 0xf9 -> dec LD_SP_HL
-      Just 0xf8 -> decn LDHL_SP_N
-      Just 0x08 -> decnn LD_ATNN_SP
+      0xf9 -> dec LD_SP_HL
+      0xf8 -> decn LDHL_SP_N
+      0x08 -> decnn LD_ATNN_SP
 
-      Just 0xf5 -> dec PUSH_AF
-      Just 0xc5 -> dec PUSH_BC
-      Just 0xd5 -> dec PUSH_DE
-      Just 0xe5 -> dec PUSH_HL
+      0xf5 -> dec PUSH_AF
+      0xc5 -> dec PUSH_BC
+      0xd5 -> dec PUSH_DE
+      0xe5 -> dec PUSH_HL
 
-      Just 0xf1 -> dec POP_AF
-      Just 0xc1 -> dec POP_BC
-      Just 0xd1 -> dec POP_DE
-      Just 0xe1 -> dec POP_HL
+      0xf1 -> dec POP_AF
+      0xc1 -> dec POP_BC
+      0xd1 -> dec POP_DE
+      0xe1 -> dec POP_HL
 
-      Just 0x87 -> dec (ADD_A_R ARegister)
-      Just 0x80 -> dec (ADD_A_R BRegister)
-      Just 0x81 -> dec (ADD_A_R CRegister)
-      Just 0x82 -> dec (ADD_A_R DRegister)
-      Just 0x83 -> dec (ADD_A_R ERegister)
-      Just 0x84 -> dec (ADD_A_R HRegister)
-      Just 0x85 -> dec (ADD_A_R LRegister)
-      Just 0xc6 -> decn ADD_A_N
-      Just 0x86 -> dec ADD_A_ATHL
+      0x87 -> dec (ADD_A_R ARegister)
+      0x80 -> dec (ADD_A_R BRegister)
+      0x81 -> dec (ADD_A_R CRegister)
+      0x82 -> dec (ADD_A_R DRegister)
+      0x83 -> dec (ADD_A_R ERegister)
+      0x84 -> dec (ADD_A_R HRegister)
+      0x85 -> dec (ADD_A_R LRegister)
+      0xc6 -> decn ADD_A_N
+      0x86 -> dec ADD_A_ATHL
 
-      Just 0x8f -> dec (ADC_A_R ARegister)
-      Just 0x88 -> dec (ADC_A_R BRegister)
-      Just 0x89 -> dec (ADC_A_R CRegister)
-      Just 0x8a -> dec (ADC_A_R DRegister)
-      Just 0x8b -> dec (ADC_A_R ERegister)
-      Just 0x8c -> dec (ADC_A_R HRegister)
-      Just 0x8d -> dec (ADC_A_R LRegister)
-      Just 0xce -> decn ADC_A_N
-      Just 0x8e -> dec ADC_A_ATHL
+      0x8f -> dec (ADC_A_R ARegister)
+      0x88 -> dec (ADC_A_R BRegister)
+      0x89 -> dec (ADC_A_R CRegister)
+      0x8a -> dec (ADC_A_R DRegister)
+      0x8b -> dec (ADC_A_R ERegister)
+      0x8c -> dec (ADC_A_R HRegister)
+      0x8d -> dec (ADC_A_R LRegister)
+      0xce -> decn ADC_A_N
+      0x8e -> dec ADC_A_ATHL
 
-      Just 0x97 -> dec (SUB_R ARegister)
-      Just 0x90 -> dec (SUB_R BRegister)
-      Just 0x91 -> dec (SUB_R CRegister)
-      Just 0x92 -> dec (SUB_R DRegister)
-      Just 0x93 -> dec (SUB_R ERegister)
-      Just 0x94 -> dec (SUB_R HRegister)
-      Just 0x95 -> dec (SUB_R LRegister)
-      Just 0xd6 -> decn SUB_N
-      Just 0x96 -> dec SUB_ATHL
+      0x97 -> dec (SUB_R ARegister)
+      0x90 -> dec (SUB_R BRegister)
+      0x91 -> dec (SUB_R CRegister)
+      0x92 -> dec (SUB_R DRegister)
+      0x93 -> dec (SUB_R ERegister)
+      0x94 -> dec (SUB_R HRegister)
+      0x95 -> dec (SUB_R LRegister)
+      0xd6 -> decn SUB_N
+      0x96 -> dec SUB_ATHL
 
-      Just 0x9f -> dec (SBC_A_R ARegister)
-      Just 0x98 -> dec (SBC_A_R BRegister)
-      Just 0x99 -> dec (SBC_A_R CRegister)
-      Just 0x9a -> dec (SBC_A_R DRegister)
-      Just 0x9b -> dec (SBC_A_R ERegister)
-      Just 0x9c -> dec (SBC_A_R HRegister)
-      Just 0x9d -> dec (SBC_A_R LRegister)
-      Just 0xde -> decn SBC_A_N
-      Just 0x9e -> dec SBC_A_ATHL
+      0x9f -> dec (SBC_A_R ARegister)
+      0x98 -> dec (SBC_A_R BRegister)
+      0x99 -> dec (SBC_A_R CRegister)
+      0x9a -> dec (SBC_A_R DRegister)
+      0x9b -> dec (SBC_A_R ERegister)
+      0x9c -> dec (SBC_A_R HRegister)
+      0x9d -> dec (SBC_A_R LRegister)
+      0xde -> decn SBC_A_N
+      0x9e -> dec SBC_A_ATHL
 
-      Just 0xa7 -> dec (AND_R ARegister)
-      Just 0xa0 -> dec (AND_R BRegister)
-      Just 0xa1 -> dec (AND_R CRegister)
-      Just 0xa2 -> dec (AND_R DRegister)
-      Just 0xa3 -> dec (AND_R ERegister)
-      Just 0xa4 -> dec (AND_R HRegister)
-      Just 0xa5 -> dec (AND_R LRegister)
-      Just 0xe6 -> decn AND_N
-      Just 0xa6 -> dec AND_ATHL
+      0xa7 -> dec (AND_R ARegister)
+      0xa0 -> dec (AND_R BRegister)
+      0xa1 -> dec (AND_R CRegister)
+      0xa2 -> dec (AND_R DRegister)
+      0xa3 -> dec (AND_R ERegister)
+      0xa4 -> dec (AND_R HRegister)
+      0xa5 -> dec (AND_R LRegister)
+      0xe6 -> decn AND_N
+      0xa6 -> dec AND_ATHL
 
-      Just 0xb7 -> dec (OR_R ARegister)
-      Just 0xb0 -> dec (OR_R BRegister)
-      Just 0xb1 -> dec (OR_R CRegister)
-      Just 0xb2 -> dec (OR_R DRegister)
-      Just 0xb3 -> dec (OR_R ERegister)
-      Just 0xb4 -> dec (OR_R HRegister)
-      Just 0xb5 -> dec (OR_R LRegister)
-      Just 0xf6 -> decn OR_N
-      Just 0xb6 -> dec OR_ATHL
+      0xb7 -> dec (OR_R ARegister)
+      0xb0 -> dec (OR_R BRegister)
+      0xb1 -> dec (OR_R CRegister)
+      0xb2 -> dec (OR_R DRegister)
+      0xb3 -> dec (OR_R ERegister)
+      0xb4 -> dec (OR_R HRegister)
+      0xb5 -> dec (OR_R LRegister)
+      0xf6 -> decn OR_N
+      0xb6 -> dec OR_ATHL
 
-      Just 0xaf -> dec (XOR_R ARegister)
-      Just 0xa8 -> dec (XOR_R BRegister)
-      Just 0xa9 -> dec (XOR_R CRegister)
-      Just 0xaa -> dec (XOR_R DRegister)
-      Just 0xab -> dec (XOR_R ERegister)
-      Just 0xac -> dec (XOR_R HRegister)
-      Just 0xad -> dec (XOR_R LRegister)
-      Just 0xee -> decn XOR_N
-      Just 0xae -> dec XOR_ATHL
+      0xaf -> dec (XOR_R ARegister)
+      0xa8 -> dec (XOR_R BRegister)
+      0xa9 -> dec (XOR_R CRegister)
+      0xaa -> dec (XOR_R DRegister)
+      0xab -> dec (XOR_R ERegister)
+      0xac -> dec (XOR_R HRegister)
+      0xad -> dec (XOR_R LRegister)
+      0xee -> decn XOR_N
+      0xae -> dec XOR_ATHL
 
-      Just 0xbf -> dec (CP_R ARegister)
-      Just 0xb8 -> dec (CP_R BRegister)
-      Just 0xb9 -> dec (CP_R CRegister)
-      Just 0xba -> dec (CP_R DRegister)
-      Just 0xbb -> dec (CP_R ERegister)
-      Just 0xbc -> dec (CP_R HRegister)
-      Just 0xbd -> dec (CP_R LRegister)
-      Just 0xfe -> decn CP_N
-      Just 0xbe -> dec CP_ATHL
+      0xbf -> dec (CP_R ARegister)
+      0xb8 -> dec (CP_R BRegister)
+      0xb9 -> dec (CP_R CRegister)
+      0xba -> dec (CP_R DRegister)
+      0xbb -> dec (CP_R ERegister)
+      0xbc -> dec (CP_R HRegister)
+      0xbd -> dec (CP_R LRegister)
+      0xfe -> decn CP_N
+      0xbe -> dec CP_ATHL
 
-      Just 0x3c -> dec (INC_R ARegister)
-      Just 0x04 -> dec (INC_R BRegister)
-      Just 0x0c -> dec (INC_R CRegister)
-      Just 0x14 -> dec (INC_R DRegister)
-      Just 0x1c -> dec (INC_R ERegister)
-      Just 0x24 -> dec (INC_R HRegister)
-      Just 0x2c -> dec (INC_R LRegister)
-      Just 0x34 -> dec INC_ATHL
+      0x3c -> dec (INC_R ARegister)
+      0x04 -> dec (INC_R BRegister)
+      0x0c -> dec (INC_R CRegister)
+      0x14 -> dec (INC_R DRegister)
+      0x1c -> dec (INC_R ERegister)
+      0x24 -> dec (INC_R HRegister)
+      0x2c -> dec (INC_R LRegister)
+      0x34 -> dec INC_ATHL
 
-      Just 0x3d -> dec (DEC_R ARegister)
-      Just 0x05 -> dec (DEC_R BRegister)
-      Just 0x0d -> dec (DEC_R CRegister)
-      Just 0x15 -> dec (DEC_R DRegister)
-      Just 0x1d -> dec (DEC_R ERegister)
-      Just 0x25 -> dec (DEC_R HRegister)
-      Just 0x2d -> dec (DEC_R LRegister)
-      Just 0x35 -> dec DEC_ATHL
+      0x3d -> dec (DEC_R ARegister)
+      0x05 -> dec (DEC_R BRegister)
+      0x0d -> dec (DEC_R CRegister)
+      0x15 -> dec (DEC_R DRegister)
+      0x1d -> dec (DEC_R ERegister)
+      0x25 -> dec (DEC_R HRegister)
+      0x2d -> dec (DEC_R LRegister)
+      0x35 -> dec DEC_ATHL
 
-      Just 0x09 -> dec ADD_HL_BC
-      Just 0x19 -> dec ADD_HL_DE
-      Just 0x29 -> dec ADD_HL_HL
-      Just 0x39 -> dec ADD_HL_SP
+      0x09 -> dec ADD_HL_BC
+      0x19 -> dec ADD_HL_DE
+      0x29 -> dec ADD_HL_HL
+      0x39 -> dec ADD_HL_SP
 
-      Just 0xe8 -> decn ADD_SP_N
+      0xe8 -> decn ADD_SP_N
 
-      Just 0x03 -> dec INC_BC
-      Just 0x13 -> dec INC_DE
-      Just 0x23 -> dec INC_HL
-      Just 0x33 -> dec INC_SP
+      0x03 -> dec INC_BC
+      0x13 -> dec INC_DE
+      0x23 -> dec INC_HL
+      0x33 -> dec INC_SP
 
-      Just 0x0b -> dec DEC_BC
-      Just 0x1b -> dec DEC_DE
-      Just 0x2b -> dec DEC_HL
-      Just 0x3b -> dec DEC_SP
+      0x0b -> dec DEC_BC
+      0x1b -> dec DEC_DE
+      0x2b -> dec DEC_HL
+      0x3b -> dec DEC_SP
 
-      Just 0x27 -> dec DAA
-      Just 0x2f -> dec CPL
-      Just 0x3f -> dec CCF
-      Just 0x37 -> dec SCF
+      0x27 -> dec DAA
+      0x2f -> dec CPL
+      0x3f -> dec CCF
+      0x37 -> dec SCF
 
-      Just 0x00 -> dec NOP
-      Just 0x76 -> dec HALT
+      0x00 -> dec NOP
+      0x76 -> dec HALT
 
-      Just 0xf3 -> dec DI
-      Just 0xfb -> dec EI
+      0xf3 -> dec DI
+      0xfb -> dec EI
 
-      Just 0x07 -> dec RLCA
-      Just 0x17 -> dec RLA
-      Just 0x0f -> dec RRCA
-      Just 0x1f -> dec RRA
+      0x07 -> dec RLCA
+      0x17 -> dec RLA
+      0x0f -> dec RRCA
+      0x1f -> dec RRA
 
-      Just 0xc3 -> decnn JP_NN
-      Just 0xc2 -> decnn (JP_C_NN NZero)
-      Just 0xca -> decnn (JP_C_NN Zero)
-      Just 0xd2 -> decnn (JP_C_NN NCarry)
-      Just 0xda -> decnn (JP_C_NN Carry)
-      Just 0xe9 -> dec JP_ATHL 
+      0xc3 -> decnn JP_NN
+      0xc2 -> decnn (JP_C_NN NZero)
+      0xca -> decnn (JP_C_NN Zero)
+      0xd2 -> decnn (JP_C_NN NCarry)
+      0xda -> decnn (JP_C_NN Carry)
+      0xe9 -> dec JP_ATHL 
 
-      Just 0x18 -> decn JR_N
-      Just 0x20 -> decn (JR_C_N NZero)
-      Just 0x28 -> decn (JR_C_N Zero)
-      Just 0x30 -> decn (JR_C_N NCarry)
-      Just 0x38 -> decn (JR_C_N Carry)
+      0x18 -> decn JR_N
+      0x20 -> decn (JR_C_N NZero)
+      0x28 -> decn (JR_C_N Zero)
+      0x30 -> decn (JR_C_N NCarry)
+      0x38 -> decn (JR_C_N Carry)
 
-      Just 0xcd -> decnn CALL_NN
-      Just 0xc4 -> decnn (CALL_C_NN NZero)
-      Just 0xcc -> decnn (CALL_C_NN Zero)
-      Just 0xd4 -> decnn (CALL_C_NN NCarry)
-      Just 0xdc -> decnn (CALL_C_NN Carry)
+      0xcd -> decnn CALL_NN
+      0xc4 -> decnn (CALL_C_NN NZero)
+      0xcc -> decnn (CALL_C_NN Zero)
+      0xd4 -> decnn (CALL_C_NN NCarry)
+      0xdc -> decnn (CALL_C_NN Carry)
 
-      Just 0xc7 -> dec (RST_RA Reset00)
-      Just 0xcf -> dec (RST_RA Reset08)
-      Just 0xd7 -> dec (RST_RA Reset10)
-      Just 0xdf -> dec (RST_RA Reset18)
-      Just 0xe7 -> dec (RST_RA Reset20)
-      Just 0xef -> dec (RST_RA Reset28)
-      Just 0xf7 -> dec (RST_RA Reset30)
-      Just 0xff -> dec (RST_RA Reset38)
+      0xc7 -> dec (RST_RA Reset00)
+      0xcf -> dec (RST_RA Reset08)
+      0xd7 -> dec (RST_RA Reset10)
+      0xdf -> dec (RST_RA Reset18)
+      0xe7 -> dec (RST_RA Reset20)
+      0xef -> dec (RST_RA Reset28)
+      0xf7 -> dec (RST_RA Reset30)
+      0xff -> dec (RST_RA Reset38)
 
-      Just 0xc9 -> dec RET
-      Just 0xc0 -> dec (RET_C NZero)
-      Just 0xc8 -> dec (RET_C Zero)
-      Just 0xd0 -> dec (RET_C NCarry)
-      Just 0xd8 -> dec (RET_C Carry)
+      0xc9 -> dec RET
+      0xc0 -> dec (RET_C NZero)
+      0xc8 -> dec (RET_C Zero)
+      0xd0 -> dec (RET_C NCarry)
+      0xd8 -> dec (RET_C Carry)
 
-      Just 0xd9 -> dec RETI
+      0xd9 -> dec RETI
 
-      Just 0x10 -> do
+      0x10 -> do
         w2 <- getWord8 
         case w2 of
-          Just 0x00 -> dec STOP
+          0x00 -> dec STOP
           _ -> return Nothing
 
-      Just 0xcb -> do
+      0xcb -> do
         w2 <- getWord8
         case w2 of
-          Just 0x37 -> dec (SWAP_R ARegister)
-          Just 0x30 -> dec (SWAP_R BRegister)
-          Just 0x31 -> dec (SWAP_R CRegister)
-          Just 0x32 -> dec (SWAP_R DRegister)
-          Just 0x33 -> dec (SWAP_R ERegister)
-          Just 0x34 -> dec (SWAP_R HRegister)
-          Just 0x35 -> dec (SWAP_R LRegister)
-          Just 0x36 -> dec SWAP_ATHL
+          0x37 -> dec (SWAP_R ARegister)
+          0x30 -> dec (SWAP_R BRegister)
+          0x31 -> dec (SWAP_R CRegister)
+          0x32 -> dec (SWAP_R DRegister)
+          0x33 -> dec (SWAP_R ERegister)
+          0x34 -> dec (SWAP_R HRegister)
+          0x35 -> dec (SWAP_R LRegister)
+          0x36 -> dec SWAP_ATHL
 
-          Just 0x07 -> dec (RLC_R ARegister)
-          Just 0x00 -> dec (RLC_R BRegister)
-          Just 0x01 -> dec (RLC_R CRegister)
-          Just 0x02 -> dec (RLC_R DRegister)
-          Just 0x03 -> dec (RLC_R ERegister)
-          Just 0x04 -> dec (RLC_R HRegister)
-          Just 0x05 -> dec (RLC_R LRegister)
-          Just 0x06 -> dec RLC_ATHL
+          0x07 -> dec (RLC_R ARegister)
+          0x00 -> dec (RLC_R BRegister)
+          0x01 -> dec (RLC_R CRegister)
+          0x02 -> dec (RLC_R DRegister)
+          0x03 -> dec (RLC_R ERegister)
+          0x04 -> dec (RLC_R HRegister)
+          0x05 -> dec (RLC_R LRegister)
+          0x06 -> dec RLC_ATHL
 
-          Just 0x17 -> dec (RL_R ARegister)
-          Just 0x10 -> dec (RL_R BRegister)
-          Just 0x11 -> dec (RL_R CRegister)
-          Just 0x12 -> dec (RL_R DRegister)
-          Just 0x13 -> dec (RL_R ERegister)
-          Just 0x14 -> dec (RL_R HRegister)
-          Just 0x15 -> dec (RL_R LRegister)
-          Just 0x16 -> dec RL_ATHL
+          0x17 -> dec (RL_R ARegister)
+          0x10 -> dec (RL_R BRegister)
+          0x11 -> dec (RL_R CRegister)
+          0x12 -> dec (RL_R DRegister)
+          0x13 -> dec (RL_R ERegister)
+          0x14 -> dec (RL_R HRegister)
+          0x15 -> dec (RL_R LRegister)
+          0x16 -> dec RL_ATHL
 
-          Just 0x0f -> dec (RRC_R ARegister)
-          Just 0x08 -> dec (RRC_R BRegister)
-          Just 0x09 -> dec (RRC_R CRegister)
-          Just 0x0a -> dec (RRC_R DRegister)
-          Just 0x0b -> dec (RRC_R ERegister)
-          Just 0x0c -> dec (RRC_R HRegister)
-          Just 0x0d -> dec (RRC_R LRegister)
-          Just 0x0e -> dec RRC_ATHL
+          0x0f -> dec (RRC_R ARegister)
+          0x08 -> dec (RRC_R BRegister)
+          0x09 -> dec (RRC_R CRegister)
+          0x0a -> dec (RRC_R DRegister)
+          0x0b -> dec (RRC_R ERegister)
+          0x0c -> dec (RRC_R HRegister)
+          0x0d -> dec (RRC_R LRegister)
+          0x0e -> dec RRC_ATHL
 
-          Just 0x1f -> dec (RR_R ARegister)
-          Just 0x18 -> dec (RR_R BRegister)
-          Just 0x19 -> dec (RR_R CRegister)
-          Just 0x1a -> dec (RR_R DRegister)
-          Just 0x1b -> dec (RR_R ERegister)
-          Just 0x1c -> dec (RR_R HRegister)
-          Just 0x1d -> dec (RR_R LRegister)
-          Just 0x1e -> dec RR_ATHL
+          0x1f -> dec (RR_R ARegister)
+          0x18 -> dec (RR_R BRegister)
+          0x19 -> dec (RR_R CRegister)
+          0x1a -> dec (RR_R DRegister)
+          0x1b -> dec (RR_R ERegister)
+          0x1c -> dec (RR_R HRegister)
+          0x1d -> dec (RR_R LRegister)
+          0x1e -> dec RR_ATHL
 
-          Just 0x27 -> dec (SLA_R ARegister)
-          Just 0x20 -> dec (SLA_R BRegister)
-          Just 0x21 -> dec (SLA_R CRegister)
-          Just 0x22 -> dec (SLA_R DRegister)
-          Just 0x23 -> dec (SLA_R ERegister)
-          Just 0x24 -> dec (SLA_R HRegister)
-          Just 0x25 -> dec (SLA_R LRegister)
-          Just 0x26 -> dec SLA_ATHL
+          0x27 -> dec (SLA_R ARegister)
+          0x20 -> dec (SLA_R BRegister)
+          0x21 -> dec (SLA_R CRegister)
+          0x22 -> dec (SLA_R DRegister)
+          0x23 -> dec (SLA_R ERegister)
+          0x24 -> dec (SLA_R HRegister)
+          0x25 -> dec (SLA_R LRegister)
+          0x26 -> dec SLA_ATHL
 
-          Just 0x2f -> dec (SRA_R ARegister)
-          Just 0x28 -> dec (SRA_R BRegister)
-          Just 0x29 -> dec (SRA_R CRegister)
-          Just 0x2a -> dec (SRA_R DRegister)
-          Just 0x2b -> dec (SRA_R ERegister)
-          Just 0x2c -> dec (SRA_R HRegister)
-          Just 0x2d -> dec (SRA_R LRegister)
-          Just 0x2e -> dec SRA_ATHL
+          0x2f -> dec (SRA_R ARegister)
+          0x28 -> dec (SRA_R BRegister)
+          0x29 -> dec (SRA_R CRegister)
+          0x2a -> dec (SRA_R DRegister)
+          0x2b -> dec (SRA_R ERegister)
+          0x2c -> dec (SRA_R HRegister)
+          0x2d -> dec (SRA_R LRegister)
+          0x2e -> dec SRA_ATHL
 
-          Just 0x3f -> dec (SRL_R ARegister)
-          Just 0x38 -> dec (SRL_R BRegister)
-          Just 0x39 -> dec (SRL_R CRegister)
-          Just 0x3a -> dec (SRL_R DRegister)
-          Just 0x3b -> dec (SRL_R ERegister)
-          Just 0x3c -> dec (SRL_R HRegister)
-          Just 0x3d -> dec (SRL_R LRegister)
-          Just 0x3e -> dec SRL_ATHL
+          0x3f -> dec (SRL_R ARegister)
+          0x38 -> dec (SRL_R BRegister)
+          0x39 -> dec (SRL_R CRegister)
+          0x3a -> dec (SRL_R DRegister)
+          0x3b -> dec (SRL_R ERegister)
+          0x3c -> dec (SRL_R HRegister)
+          0x3d -> dec (SRL_R LRegister)
+          0x3e -> dec SRL_ATHL
 
-          Just 0x47 -> dec (BIT_B_R Bit0 ARegister)
-          Just 0x40 -> dec (BIT_B_R Bit0 BRegister)
-          Just 0x41 -> dec (BIT_B_R Bit0 CRegister)
-          Just 0x42 -> dec (BIT_B_R Bit0 DRegister)
-          Just 0x43 -> dec (BIT_B_R Bit0 ERegister)
-          Just 0x44 -> dec (BIT_B_R Bit0 HRegister)
-          Just 0x45 -> dec (BIT_B_R Bit0 LRegister)
-          Just 0x46 -> dec (BIT_B_ATHL Bit0)
+          0x47 -> dec (BIT_B_R Bit0 ARegister)
+          0x40 -> dec (BIT_B_R Bit0 BRegister)
+          0x41 -> dec (BIT_B_R Bit0 CRegister)
+          0x42 -> dec (BIT_B_R Bit0 DRegister)
+          0x43 -> dec (BIT_B_R Bit0 ERegister)
+          0x44 -> dec (BIT_B_R Bit0 HRegister)
+          0x45 -> dec (BIT_B_R Bit0 LRegister)
+          0x46 -> dec (BIT_B_ATHL Bit0)
 
-          Just 0x48 -> dec (BIT_B_R Bit1 ARegister)
-          Just 0x49 -> dec (BIT_B_R Bit1 BRegister)
-          Just 0x4a -> dec (BIT_B_R Bit1 CRegister)
-          Just 0x4b -> dec (BIT_B_R Bit1 DRegister)
-          Just 0x4c -> dec (BIT_B_R Bit1 ERegister)
-          Just 0x4d -> dec (BIT_B_R Bit1 HRegister)
-          Just 0x4e -> dec (BIT_B_R Bit1 LRegister)
-          Just 0x4f -> dec (BIT_B_ATHL Bit1)
+          0x48 -> dec (BIT_B_R Bit1 ARegister)
+          0x49 -> dec (BIT_B_R Bit1 BRegister)
+          0x4a -> dec (BIT_B_R Bit1 CRegister)
+          0x4b -> dec (BIT_B_R Bit1 DRegister)
+          0x4c -> dec (BIT_B_R Bit1 ERegister)
+          0x4d -> dec (BIT_B_R Bit1 HRegister)
+          0x4e -> dec (BIT_B_R Bit1 LRegister)
+          0x4f -> dec (BIT_B_ATHL Bit1)
 
-          Just 0x57 -> dec (BIT_B_R Bit2 ARegister)
-          Just 0x50 -> dec (BIT_B_R Bit2 BRegister)
-          Just 0x51 -> dec (BIT_B_R Bit2 CRegister)
-          Just 0x52 -> dec (BIT_B_R Bit2 DRegister)
-          Just 0x53 -> dec (BIT_B_R Bit2 ERegister)
-          Just 0x54 -> dec (BIT_B_R Bit2 HRegister)
-          Just 0x55 -> dec (BIT_B_R Bit2 LRegister)
-          Just 0x56 -> dec (BIT_B_ATHL Bit2)
+          0x57 -> dec (BIT_B_R Bit2 ARegister)
+          0x50 -> dec (BIT_B_R Bit2 BRegister)
+          0x51 -> dec (BIT_B_R Bit2 CRegister)
+          0x52 -> dec (BIT_B_R Bit2 DRegister)
+          0x53 -> dec (BIT_B_R Bit2 ERegister)
+          0x54 -> dec (BIT_B_R Bit2 HRegister)
+          0x55 -> dec (BIT_B_R Bit2 LRegister)
+          0x56 -> dec (BIT_B_ATHL Bit2)
 
-          Just 0x58 -> dec (BIT_B_R Bit3 ARegister)
-          Just 0x59 -> dec (BIT_B_R Bit3 BRegister)
-          Just 0x5a -> dec (BIT_B_R Bit3 CRegister)
-          Just 0x5b -> dec (BIT_B_R Bit3 DRegister)
-          Just 0x5c -> dec (BIT_B_R Bit3 ERegister)
-          Just 0x5d -> dec (BIT_B_R Bit3 HRegister)
-          Just 0x5e -> dec (BIT_B_R Bit3 LRegister)
-          Just 0x5f -> dec (BIT_B_ATHL Bit3)
+          0x58 -> dec (BIT_B_R Bit3 ARegister)
+          0x59 -> dec (BIT_B_R Bit3 BRegister)
+          0x5a -> dec (BIT_B_R Bit3 CRegister)
+          0x5b -> dec (BIT_B_R Bit3 DRegister)
+          0x5c -> dec (BIT_B_R Bit3 ERegister)
+          0x5d -> dec (BIT_B_R Bit3 HRegister)
+          0x5e -> dec (BIT_B_R Bit3 LRegister)
+          0x5f -> dec (BIT_B_ATHL Bit3)
 
-          Just 0x67 -> dec (BIT_B_R Bit4 ARegister)
-          Just 0x60 -> dec (BIT_B_R Bit4 BRegister)
-          Just 0x61 -> dec (BIT_B_R Bit4 CRegister)
-          Just 0x62 -> dec (BIT_B_R Bit4 DRegister)
-          Just 0x63 -> dec (BIT_B_R Bit4 ERegister)
-          Just 0x64 -> dec (BIT_B_R Bit4 HRegister)
-          Just 0x65 -> dec (BIT_B_R Bit4 LRegister)
-          Just 0x66 -> dec (BIT_B_ATHL Bit4)
+          0x67 -> dec (BIT_B_R Bit4 ARegister)
+          0x60 -> dec (BIT_B_R Bit4 BRegister)
+          0x61 -> dec (BIT_B_R Bit4 CRegister)
+          0x62 -> dec (BIT_B_R Bit4 DRegister)
+          0x63 -> dec (BIT_B_R Bit4 ERegister)
+          0x64 -> dec (BIT_B_R Bit4 HRegister)
+          0x65 -> dec (BIT_B_R Bit4 LRegister)
+          0x66 -> dec (BIT_B_ATHL Bit4)
 
-          Just 0x68 -> dec (BIT_B_R Bit5 ARegister)
-          Just 0x69 -> dec (BIT_B_R Bit5 BRegister)
-          Just 0x6a -> dec (BIT_B_R Bit5 CRegister)
-          Just 0x6b -> dec (BIT_B_R Bit5 DRegister)
-          Just 0x6c -> dec (BIT_B_R Bit5 ERegister)
-          Just 0x6d -> dec (BIT_B_R Bit5 HRegister)
-          Just 0x6e -> dec (BIT_B_R Bit5 LRegister)
-          Just 0x6f -> dec (BIT_B_ATHL Bit5)
+          0x68 -> dec (BIT_B_R Bit5 ARegister)
+          0x69 -> dec (BIT_B_R Bit5 BRegister)
+          0x6a -> dec (BIT_B_R Bit5 CRegister)
+          0x6b -> dec (BIT_B_R Bit5 DRegister)
+          0x6c -> dec (BIT_B_R Bit5 ERegister)
+          0x6d -> dec (BIT_B_R Bit5 HRegister)
+          0x6e -> dec (BIT_B_R Bit5 LRegister)
+          0x6f -> dec (BIT_B_ATHL Bit5)
 
-          Just 0x77 -> dec (BIT_B_R Bit6 ARegister)
-          Just 0x70 -> dec (BIT_B_R Bit6 BRegister)
-          Just 0x71 -> dec (BIT_B_R Bit6 CRegister)
-          Just 0x72 -> dec (BIT_B_R Bit6 DRegister)
-          Just 0x73 -> dec (BIT_B_R Bit6 ERegister)
-          Just 0x74 -> dec (BIT_B_R Bit6 HRegister)
-          Just 0x75 -> dec (BIT_B_R Bit6 LRegister)
-          Just 0x76 -> dec (BIT_B_ATHL Bit6)
+          0x77 -> dec (BIT_B_R Bit6 ARegister)
+          0x70 -> dec (BIT_B_R Bit6 BRegister)
+          0x71 -> dec (BIT_B_R Bit6 CRegister)
+          0x72 -> dec (BIT_B_R Bit6 DRegister)
+          0x73 -> dec (BIT_B_R Bit6 ERegister)
+          0x74 -> dec (BIT_B_R Bit6 HRegister)
+          0x75 -> dec (BIT_B_R Bit6 LRegister)
+          0x76 -> dec (BIT_B_ATHL Bit6)
 
-          Just 0x78 -> dec (BIT_B_R Bit7 ARegister)
-          Just 0x79 -> dec (BIT_B_R Bit7 BRegister)
-          Just 0x7a -> dec (BIT_B_R Bit7 CRegister)
-          Just 0x7b -> dec (BIT_B_R Bit7 DRegister)
-          Just 0x7c -> dec (BIT_B_R Bit7 ERegister)
-          Just 0x7d -> dec (BIT_B_R Bit7 HRegister)
-          Just 0x7e -> dec (BIT_B_R Bit7 LRegister)
-          Just 0x7f -> dec (BIT_B_ATHL Bit7)
+          0x78 -> dec (BIT_B_R Bit7 ARegister)
+          0x79 -> dec (BIT_B_R Bit7 BRegister)
+          0x7a -> dec (BIT_B_R Bit7 CRegister)
+          0x7b -> dec (BIT_B_R Bit7 DRegister)
+          0x7c -> dec (BIT_B_R Bit7 ERegister)
+          0x7d -> dec (BIT_B_R Bit7 HRegister)
+          0x7e -> dec (BIT_B_R Bit7 LRegister)
+          0x7f -> dec (BIT_B_ATHL Bit7)
 
-          Just 0xc7 -> dec (SET_B_R Bit0 ARegister)
-          Just 0xc0 -> dec (SET_B_R Bit0 BRegister)
-          Just 0xc1 -> dec (SET_B_R Bit0 CRegister)
-          Just 0xc2 -> dec (SET_B_R Bit0 DRegister)
-          Just 0xc3 -> dec (SET_B_R Bit0 ERegister)
-          Just 0xc4 -> dec (SET_B_R Bit0 HRegister)
-          Just 0xc5 -> dec (SET_B_R Bit0 LRegister)
-          Just 0xc6 -> dec (SET_B_ATHL Bit0)
+          0xc7 -> dec (SET_B_R Bit0 ARegister)
+          0xc0 -> dec (SET_B_R Bit0 BRegister)
+          0xc1 -> dec (SET_B_R Bit0 CRegister)
+          0xc2 -> dec (SET_B_R Bit0 DRegister)
+          0xc3 -> dec (SET_B_R Bit0 ERegister)
+          0xc4 -> dec (SET_B_R Bit0 HRegister)
+          0xc5 -> dec (SET_B_R Bit0 LRegister)
+          0xc6 -> dec (SET_B_ATHL Bit0)
 
-          Just 0xc8 -> dec (SET_B_R Bit1 ARegister)
-          Just 0xc9 -> dec (SET_B_R Bit1 BRegister)
-          Just 0xca -> dec (SET_B_R Bit1 CRegister)
-          Just 0xcb -> dec (SET_B_R Bit1 DRegister)
-          Just 0xcc -> dec (SET_B_R Bit1 ERegister)
-          Just 0xcd -> dec (SET_B_R Bit1 HRegister)
-          Just 0xce -> dec (SET_B_R Bit1 LRegister)
-          Just 0xcf -> dec (SET_B_ATHL Bit1)
+          0xc8 -> dec (SET_B_R Bit1 ARegister)
+          0xc9 -> dec (SET_B_R Bit1 BRegister)
+          0xca -> dec (SET_B_R Bit1 CRegister)
+          0xcb -> dec (SET_B_R Bit1 DRegister)
+          0xcc -> dec (SET_B_R Bit1 ERegister)
+          0xcd -> dec (SET_B_R Bit1 HRegister)
+          0xce -> dec (SET_B_R Bit1 LRegister)
+          0xcf -> dec (SET_B_ATHL Bit1)
 
-          Just 0xd7 -> dec (SET_B_R Bit2 ARegister)
-          Just 0xd0 -> dec (SET_B_R Bit2 BRegister)
-          Just 0xd1 -> dec (SET_B_R Bit2 CRegister)
-          Just 0xd2 -> dec (SET_B_R Bit2 DRegister)
-          Just 0xd3 -> dec (SET_B_R Bit2 ERegister)
-          Just 0xd4 -> dec (SET_B_R Bit2 HRegister)
-          Just 0xd5 -> dec (SET_B_R Bit2 LRegister)
-          Just 0xd6 -> dec (SET_B_ATHL Bit2)
+          0xd7 -> dec (SET_B_R Bit2 ARegister)
+          0xd0 -> dec (SET_B_R Bit2 BRegister)
+          0xd1 -> dec (SET_B_R Bit2 CRegister)
+          0xd2 -> dec (SET_B_R Bit2 DRegister)
+          0xd3 -> dec (SET_B_R Bit2 ERegister)
+          0xd4 -> dec (SET_B_R Bit2 HRegister)
+          0xd5 -> dec (SET_B_R Bit2 LRegister)
+          0xd6 -> dec (SET_B_ATHL Bit2)
 
-          Just 0xd8 -> dec (SET_B_R Bit3 ARegister)
-          Just 0xd9 -> dec (SET_B_R Bit3 BRegister)
-          Just 0xda -> dec (SET_B_R Bit3 CRegister)
-          Just 0xdb -> dec (SET_B_R Bit3 DRegister)
-          Just 0xdc -> dec (SET_B_R Bit3 ERegister)
-          Just 0xdd -> dec (SET_B_R Bit3 HRegister)
-          Just 0xde -> dec (SET_B_R Bit3 LRegister)
-          Just 0xdf -> dec (SET_B_ATHL Bit3)
+          0xd8 -> dec (SET_B_R Bit3 ARegister)
+          0xd9 -> dec (SET_B_R Bit3 BRegister)
+          0xda -> dec (SET_B_R Bit3 CRegister)
+          0xdb -> dec (SET_B_R Bit3 DRegister)
+          0xdc -> dec (SET_B_R Bit3 ERegister)
+          0xdd -> dec (SET_B_R Bit3 HRegister)
+          0xde -> dec (SET_B_R Bit3 LRegister)
+          0xdf -> dec (SET_B_ATHL Bit3)
 
-          Just 0xe7 -> dec (SET_B_R Bit4 ARegister)
-          Just 0xe0 -> dec (SET_B_R Bit4 BRegister)
-          Just 0xe1 -> dec (SET_B_R Bit4 CRegister)
-          Just 0xe2 -> dec (SET_B_R Bit4 DRegister)
-          Just 0xe3 -> dec (SET_B_R Bit4 ERegister)
-          Just 0xe4 -> dec (SET_B_R Bit4 HRegister)
-          Just 0xe5 -> dec (SET_B_R Bit4 LRegister)
-          Just 0xe6 -> dec (SET_B_ATHL Bit4)
+          0xe7 -> dec (SET_B_R Bit4 ARegister)
+          0xe0 -> dec (SET_B_R Bit4 BRegister)
+          0xe1 -> dec (SET_B_R Bit4 CRegister)
+          0xe2 -> dec (SET_B_R Bit4 DRegister)
+          0xe3 -> dec (SET_B_R Bit4 ERegister)
+          0xe4 -> dec (SET_B_R Bit4 HRegister)
+          0xe5 -> dec (SET_B_R Bit4 LRegister)
+          0xe6 -> dec (SET_B_ATHL Bit4)
 
-          Just 0xe8 -> dec (SET_B_R Bit5 ARegister)
-          Just 0xe9 -> dec (SET_B_R Bit5 BRegister)
-          Just 0xea -> dec (SET_B_R Bit5 CRegister)
-          Just 0xeb -> dec (SET_B_R Bit5 DRegister)
-          Just 0xec -> dec (SET_B_R Bit5 ERegister)
-          Just 0xed -> dec (SET_B_R Bit5 HRegister)
-          Just 0xee -> dec (SET_B_R Bit5 LRegister)
-          Just 0xef -> dec (SET_B_ATHL Bit5)
+          0xe8 -> dec (SET_B_R Bit5 ARegister)
+          0xe9 -> dec (SET_B_R Bit5 BRegister)
+          0xea -> dec (SET_B_R Bit5 CRegister)
+          0xeb -> dec (SET_B_R Bit5 DRegister)
+          0xec -> dec (SET_B_R Bit5 ERegister)
+          0xed -> dec (SET_B_R Bit5 HRegister)
+          0xee -> dec (SET_B_R Bit5 LRegister)
+          0xef -> dec (SET_B_ATHL Bit5)
 
-          Just 0xf7 -> dec (SET_B_R Bit6 ARegister)
-          Just 0xf0 -> dec (SET_B_R Bit6 BRegister)
-          Just 0xf1 -> dec (SET_B_R Bit6 CRegister)
-          Just 0xf2 -> dec (SET_B_R Bit6 DRegister)
-          Just 0xf3 -> dec (SET_B_R Bit6 ERegister)
-          Just 0xf4 -> dec (SET_B_R Bit6 HRegister)
-          Just 0xf5 -> dec (SET_B_R Bit6 LRegister)
-          Just 0xf6 -> dec (SET_B_ATHL Bit6)
+          0xf7 -> dec (SET_B_R Bit6 ARegister)
+          0xf0 -> dec (SET_B_R Bit6 BRegister)
+          0xf1 -> dec (SET_B_R Bit6 CRegister)
+          0xf2 -> dec (SET_B_R Bit6 DRegister)
+          0xf3 -> dec (SET_B_R Bit6 ERegister)
+          0xf4 -> dec (SET_B_R Bit6 HRegister)
+          0xf5 -> dec (SET_B_R Bit6 LRegister)
+          0xf6 -> dec (SET_B_ATHL Bit6)
 
-          Just 0xf8 -> dec (SET_B_R Bit7 ARegister)
-          Just 0xf9 -> dec (SET_B_R Bit7 BRegister)
-          Just 0xfa -> dec (SET_B_R Bit7 CRegister)
-          Just 0xfb -> dec (SET_B_R Bit7 DRegister)
-          Just 0xfc -> dec (SET_B_R Bit7 ERegister)
-          Just 0xfd -> dec (SET_B_R Bit7 HRegister)
-          Just 0xfe -> dec (SET_B_R Bit7 LRegister)
-          Just 0xff -> dec (SET_B_ATHL Bit7)
+          0xf8 -> dec (SET_B_R Bit7 ARegister)
+          0xf9 -> dec (SET_B_R Bit7 BRegister)
+          0xfa -> dec (SET_B_R Bit7 CRegister)
+          0xfb -> dec (SET_B_R Bit7 DRegister)
+          0xfc -> dec (SET_B_R Bit7 ERegister)
+          0xfd -> dec (SET_B_R Bit7 HRegister)
+          0xfe -> dec (SET_B_R Bit7 LRegister)
+          0xff -> dec (SET_B_ATHL Bit7)
 
-          Just 0x87 -> dec (RES_B_R Bit0 ARegister)
-          Just 0x80 -> dec (RES_B_R Bit0 BRegister)
-          Just 0x81 -> dec (RES_B_R Bit0 CRegister)
-          Just 0x82 -> dec (RES_B_R Bit0 DRegister)
-          Just 0x83 -> dec (RES_B_R Bit0 ERegister)
-          Just 0x84 -> dec (RES_B_R Bit0 HRegister)
-          Just 0x85 -> dec (RES_B_R Bit0 LRegister)
-          Just 0x86 -> dec (RES_B_ATHL Bit0)
+          0x87 -> dec (RES_B_R Bit0 ARegister)
+          0x80 -> dec (RES_B_R Bit0 BRegister)
+          0x81 -> dec (RES_B_R Bit0 CRegister)
+          0x82 -> dec (RES_B_R Bit0 DRegister)
+          0x83 -> dec (RES_B_R Bit0 ERegister)
+          0x84 -> dec (RES_B_R Bit0 HRegister)
+          0x85 -> dec (RES_B_R Bit0 LRegister)
+          0x86 -> dec (RES_B_ATHL Bit0)
 
-          Just 0x88 -> dec (RES_B_R Bit1 ARegister)
-          Just 0x89 -> dec (RES_B_R Bit1 BRegister)
-          Just 0x8a -> dec (RES_B_R Bit1 CRegister)
-          Just 0x8b -> dec (RES_B_R Bit1 DRegister)
-          Just 0x8c -> dec (RES_B_R Bit1 ERegister)
-          Just 0x8d -> dec (RES_B_R Bit1 HRegister)
-          Just 0x8e -> dec (RES_B_R Bit1 LRegister)
-          Just 0x8f -> dec (RES_B_ATHL Bit1)
+          0x88 -> dec (RES_B_R Bit1 ARegister)
+          0x89 -> dec (RES_B_R Bit1 BRegister)
+          0x8a -> dec (RES_B_R Bit1 CRegister)
+          0x8b -> dec (RES_B_R Bit1 DRegister)
+          0x8c -> dec (RES_B_R Bit1 ERegister)
+          0x8d -> dec (RES_B_R Bit1 HRegister)
+          0x8e -> dec (RES_B_R Bit1 LRegister)
+          0x8f -> dec (RES_B_ATHL Bit1)
 
-          Just 0x97 -> dec (RES_B_R Bit2 ARegister)
-          Just 0x90 -> dec (RES_B_R Bit2 BRegister)
-          Just 0x91 -> dec (RES_B_R Bit2 CRegister)
-          Just 0x92 -> dec (RES_B_R Bit2 DRegister)
-          Just 0x93 -> dec (RES_B_R Bit2 ERegister)
-          Just 0x94 -> dec (RES_B_R Bit2 HRegister)
-          Just 0x95 -> dec (RES_B_R Bit2 LRegister)
-          Just 0x96 -> dec (RES_B_ATHL Bit2)
+          0x97 -> dec (RES_B_R Bit2 ARegister)
+          0x90 -> dec (RES_B_R Bit2 BRegister)
+          0x91 -> dec (RES_B_R Bit2 CRegister)
+          0x92 -> dec (RES_B_R Bit2 DRegister)
+          0x93 -> dec (RES_B_R Bit2 ERegister)
+          0x94 -> dec (RES_B_R Bit2 HRegister)
+          0x95 -> dec (RES_B_R Bit2 LRegister)
+          0x96 -> dec (RES_B_ATHL Bit2)
 
-          Just 0x98 -> dec (RES_B_R Bit3 ARegister)
-          Just 0x99 -> dec (RES_B_R Bit3 BRegister)
-          Just 0x9a -> dec (RES_B_R Bit3 CRegister)
-          Just 0x9b -> dec (RES_B_R Bit3 DRegister)
-          Just 0x9c -> dec (RES_B_R Bit3 ERegister)
-          Just 0x9d -> dec (RES_B_R Bit3 HRegister)
-          Just 0x9e -> dec (RES_B_R Bit3 LRegister)
-          Just 0x9f -> dec (RES_B_ATHL Bit3)
+          0x98 -> dec (RES_B_R Bit3 ARegister)
+          0x99 -> dec (RES_B_R Bit3 BRegister)
+          0x9a -> dec (RES_B_R Bit3 CRegister)
+          0x9b -> dec (RES_B_R Bit3 DRegister)
+          0x9c -> dec (RES_B_R Bit3 ERegister)
+          0x9d -> dec (RES_B_R Bit3 HRegister)
+          0x9e -> dec (RES_B_R Bit3 LRegister)
+          0x9f -> dec (RES_B_ATHL Bit3)
 
-          Just 0xa7 -> dec (RES_B_R Bit4 ARegister)
-          Just 0xa0 -> dec (RES_B_R Bit4 BRegister)
-          Just 0xa1 -> dec (RES_B_R Bit4 CRegister)
-          Just 0xa2 -> dec (RES_B_R Bit4 DRegister)
-          Just 0xa3 -> dec (RES_B_R Bit4 ERegister)
-          Just 0xa4 -> dec (RES_B_R Bit4 HRegister)
-          Just 0xa5 -> dec (RES_B_R Bit4 LRegister)
-          Just 0xa6 -> dec (RES_B_ATHL Bit4)
+          0xa7 -> dec (RES_B_R Bit4 ARegister)
+          0xa0 -> dec (RES_B_R Bit4 BRegister)
+          0xa1 -> dec (RES_B_R Bit4 CRegister)
+          0xa2 -> dec (RES_B_R Bit4 DRegister)
+          0xa3 -> dec (RES_B_R Bit4 ERegister)
+          0xa4 -> dec (RES_B_R Bit4 HRegister)
+          0xa5 -> dec (RES_B_R Bit4 LRegister)
+          0xa6 -> dec (RES_B_ATHL Bit4)
 
-          Just 0xa8 -> dec (RES_B_R Bit5 ARegister)
-          Just 0xa9 -> dec (RES_B_R Bit5 BRegister)
-          Just 0xaa -> dec (RES_B_R Bit5 CRegister)
-          Just 0xab -> dec (RES_B_R Bit5 DRegister)
-          Just 0xac -> dec (RES_B_R Bit5 ERegister)
-          Just 0xad -> dec (RES_B_R Bit5 HRegister)
-          Just 0xae -> dec (RES_B_R Bit5 LRegister)
-          Just 0xaf -> dec (RES_B_ATHL Bit5)
+          0xa8 -> dec (RES_B_R Bit5 ARegister)
+          0xa9 -> dec (RES_B_R Bit5 BRegister)
+          0xaa -> dec (RES_B_R Bit5 CRegister)
+          0xab -> dec (RES_B_R Bit5 DRegister)
+          0xac -> dec (RES_B_R Bit5 ERegister)
+          0xad -> dec (RES_B_R Bit5 HRegister)
+          0xae -> dec (RES_B_R Bit5 LRegister)
+          0xaf -> dec (RES_B_ATHL Bit5)
 
-          Just 0xb7 -> dec (RES_B_R Bit6 ARegister)
-          Just 0xb0 -> dec (RES_B_R Bit6 BRegister)
-          Just 0xb1 -> dec (RES_B_R Bit6 CRegister)
-          Just 0xb2 -> dec (RES_B_R Bit6 DRegister)
-          Just 0xb3 -> dec (RES_B_R Bit6 ERegister)
-          Just 0xb4 -> dec (RES_B_R Bit6 HRegister)
-          Just 0xb5 -> dec (RES_B_R Bit6 LRegister)
-          Just 0xb6 -> dec (RES_B_ATHL Bit6)
+          0xb7 -> dec (RES_B_R Bit6 ARegister)
+          0xb0 -> dec (RES_B_R Bit6 BRegister)
+          0xb1 -> dec (RES_B_R Bit6 CRegister)
+          0xb2 -> dec (RES_B_R Bit6 DRegister)
+          0xb3 -> dec (RES_B_R Bit6 ERegister)
+          0xb4 -> dec (RES_B_R Bit6 HRegister)
+          0xb5 -> dec (RES_B_R Bit6 LRegister)
+          0xb6 -> dec (RES_B_ATHL Bit6)
 
-          Just 0xb8 -> dec (RES_B_R Bit7 ARegister)
-          Just 0xb9 -> dec (RES_B_R Bit7 BRegister)
-          Just 0xba -> dec (RES_B_R Bit7 CRegister)
-          Just 0xbb -> dec (RES_B_R Bit7 DRegister)
-          Just 0xbc -> dec (RES_B_R Bit7 ERegister)
-          Just 0xbd -> dec (RES_B_R Bit7 HRegister)
-          Just 0xbe -> dec (RES_B_R Bit7 LRegister)
-          Just 0xbf -> dec (RES_B_ATHL Bit7)
+          0xb8 -> dec (RES_B_R Bit7 ARegister)
+          0xb9 -> dec (RES_B_R Bit7 BRegister)
+          0xba -> dec (RES_B_R Bit7 CRegister)
+          0xbb -> dec (RES_B_R Bit7 DRegister)
+          0xbc -> dec (RES_B_R Bit7 ERegister)
+          0xbd -> dec (RES_B_R Bit7 HRegister)
+          0xbe -> dec (RES_B_R Bit7 LRegister)
+          0xbf -> dec (RES_B_ATHL Bit7)
 
           _ -> return Nothing
 
@@ -1391,14 +1391,9 @@ decodeInstruction getWord8 = do
   where
     dec r = return $ Just r
     decn r = do
-      nb <- getWord8
-      case nb of
-        Just b -> return $ Just $ r b
-        Nothing -> return Nothing
+      b <- getWord8
+      return $ Just $ r b
     decnn r = do
-      ml <- getWord8
-      mh <- getWord8
-      case (ml, mh) of
-        (Just l, Just h) -> return $ Just $ r $ makeWord l h
-        _ -> return Nothing
-
+      l <- getWord8
+      h <- getWord8
+      return $ Just $ r $ makeWord l h

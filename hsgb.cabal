@@ -3,6 +3,7 @@ version:             0.1.0.0
 author:              kyren
 maintainer:          kerriganw@gmail.com
 build-type:          Simple
+License:             PublicDomain
 cabal-version:       >= 1.10
 
 library

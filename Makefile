@@ -1,14 +1,8 @@
-build: setup
-	cabal build
+build:
+	nix-shell --pure --command "cabal build"
 
-test: setup
-	cabal test
+test:
+	nix-shell --pure --command "cabal test"
 
-clean:
-	cabal clean
-	cabal sandbox delete
-
-setup:
-	cabal sandbox init
-	cabal install --only-dependencies --enable-tests
-	cabal configure --enable-tests
+run:
+	nix-shell --pure --command "cabal run"

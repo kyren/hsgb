@@ -2,7 +2,7 @@
 mkDerivation {
   pname = "gameboy";
   version = "0.1.0.0";
-  src = ./.;
+  src = ../.;
   isLibrary = true;
   isExecutable = true;
   buildDepends = [ base parsec sdl2 transformers vector ];

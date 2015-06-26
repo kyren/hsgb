@@ -1,0 +1,25 @@
+{
+  "cmd": "make -Cbuild",
+  "name": "hsgb",
+  "args": [],
+  "sh": true,
+  "env": {},
+  "errorMatch": "^(?<file>[^\\.]+.hs):(?<line>\\d+):(?<col>\\d+)",
+  "targets": {
+    "build": {
+      "cmd": "make -Cbuild build"
+    },
+    "test": {
+      "cmd": "make -Cbuild test"
+    },
+    "run": {
+      "cmd": "make -Cbuild run"
+    },
+    "clean": {
+      "cmd": "make -Cbuild clean"
+    },
+    "configure": {
+      "cmd": "make -Cbuild configure"
+    }
+  }
+}

@@ -9,7 +9,6 @@ import Data.Maybe
 import Data.Char
 import Data.Word
 import Control.Monad
-import Control.Applicative ((<$>))
 import Text.Parsec
 import qualified Data.Vector.Unboxed as VU
 import Gameboy.Instructions

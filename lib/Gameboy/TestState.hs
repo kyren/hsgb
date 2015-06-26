@@ -11,7 +11,6 @@ import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
-import Control.Applicative
 import Data.STRef
 import Gameboy.CPU
 import Gameboy.Emulation

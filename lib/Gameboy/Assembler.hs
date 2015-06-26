@@ -30,7 +30,7 @@ data Address
   | AtN Word8
   deriving (Show)
 
-data Argument 
+data Argument
   = RegisterArg Register
   | Register16Arg Register16
   | AddressArg Address

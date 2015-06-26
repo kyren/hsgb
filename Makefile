@@ -1,8 +1,8 @@
 build:
-	nix-shell --pure --command "cabal build"
+	./nix-command.sh "cabal build"
 
 test:
-	nix-shell --pure --command "cabal test"
+	./nix-command.sh "cabal test"
 
 run:
-	nix-shell --pure --command "cabal run"
+	./nix-command.sh "cabal run"

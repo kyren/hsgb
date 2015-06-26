@@ -11,6 +11,7 @@ import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
+import Control.Applicative
 import Data.STRef
 import Gameboy.CPU
 import Gameboy.Emulation
@@ -42,7 +43,7 @@ newtype TestEnvironmentST s a = TestEnvironmentST {
 
 freezeTestState :: TestStateST s -> ST s TestState
 freezeTestState st = TestState <$>
-    VU.freeze (stMemory st) <*> 
+    VU.freeze (stMemory st) <*>
     rd stARegister <*>
     rd stBRegister <*>
     rd stCRegister <*>

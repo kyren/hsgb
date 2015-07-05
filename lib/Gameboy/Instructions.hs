@@ -1396,4 +1396,4 @@ decodeInstruction getWord8 = do
     decnn r = do
       l <- getWord8
       h <- getWord8
-      return $ Just $ r $ makeWord l h
+      return $ Just $ r $ makeWord16 l h

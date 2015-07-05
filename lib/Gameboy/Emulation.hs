@@ -19,6 +19,12 @@ setMemory16 addr nn = do
   setMemory addr (highByte nn)
   setMemory (addr + 1) (lowByte nn)
 
+getMemory16 :: (Memory m) => Word16 -> m Word16
+getMemory16 addr = do
+  h <- getMemory addr
+  l <- getMemory (addr + 1)
+  return $ makeWord16 l h
+
 getNextPC :: (CPU m, Memory m) => m Word8
 getNextPC = do
   pc <- getProgramCounter
@@ -27,6 +33,19 @@ getNextPC = do
     else do
       setProgramCounter (pc + 1)
       getMemory pc
+
+pushStack16 :: (CPU m, Memory m) => Word16 -> m ()
+pushStack16 nn = do
+  sp <- getStackPointer
+  setMemory16 sp nn
+  setStackPointer (sp - 2)
+
+popStack16 :: (CPU m, Memory m) => m Word16
+popStack16 = do
+  sp <- getStackPointer
+  nn <- getMemory16 sp
+  setStackPointer (sp + 2)
+  return nn
 
 getRegister :: (CPU m) => Register -> m Word8
 getRegister ARegister = getARegister
@@ -46,11 +65,22 @@ setRegister ERegister = setERegister
 setRegister HRegister = setHRegister
 setRegister LRegister = setLRegister
 
+getAF :: (CPU m) => m Word16
+getAF = do
+  h <- getARegister
+  l <- getFRegister
+  return $ makeWord16 l h
+
+setAF :: (CPU m) => Word16 -> m ()
+setAF nn = do
+  setARegister $ highByte nn
+  setFRegister $ lowByte nn
+
 getBC :: (CPU m) => m Word16
 getBC = do
   h <- getBRegister
   l <- getCRegister
-  return $ makeWord l h
+  return $ makeWord16 l h
 
 setBC :: (CPU m) => Word16 -> m ()
 setBC nn = do
@@ -61,7 +91,7 @@ getDE :: (CPU m) => m Word16
 getDE = do
   h <- getDRegister
   l <- getERegister
-  return $ makeWord l h
+  return $ makeWord16 l h
 
 setDE :: (CPU m) => Word16 -> m ()
 setDE nn = do
@@ -72,7 +102,7 @@ getHL :: (CPU m) => m Word16
 getHL = do
   h <- getHRegister
   l <- getLRegister
-  return $ makeWord l h
+  return $ makeWord16 l h
 
 setHL :: (CPU m) => Word16 -> m ()
 setHL nn = do
@@ -100,12 +130,12 @@ setAtHL n = getHL >>= (`setMemory` n)
 getAtC :: (CPU m, Memory m) => m Word8
 getAtC = do
   c <- getCRegister
-  getMemory (makeWord c 0xff)
+  getMemory (makeWord16 c 0xff)
 
 setAtC :: (CPU m, Memory m) => Word8 -> m ()
 setAtC v = do
   c <- getCRegister
-  setMemory (makeWord c 0xff) v
+  setMemory (makeWord16 c 0xff) v
 
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 
@@ -198,13 +228,13 @@ doInstruction LDI_ATHL_A = do
   tick 8
 
 doInstruction (LDH_A_ATN n) = do
-  v <- getMemory (makeWord n 0xff)
+  v <- getMemory (makeWord16 n 0xff)
   setARegister v
   tick 12
 
 doInstruction (LDH_ATN_A n) = do
   v <- getARegister
-  setMemory (makeWord n 0xff) v
+  setMemory (makeWord16 n 0xff) v
   tick 12
 
 doInstruction (LD_BC_NN nn) = do
@@ -237,6 +267,38 @@ doInstruction (LD_ATNN_SP nn) = do
   sp <- getStackPointer
   setMemory16 nn sp
   tick 20
+
+doInstruction PUSH_AF = do
+  getAF >>= pushStack16
+  tick 16
+
+doInstruction PUSH_BC = do
+  getBC >>= pushStack16
+  tick 16
+
+doInstruction PUSH_DE = do
+  getDE >>= pushStack16
+  tick 16
+
+doInstruction PUSH_HL = do
+  getHL >>= pushStack16
+  tick 16
+
+doInstruction POP_AF = do
+  popStack16 >>= setAF
+  tick 12
+
+doInstruction POP_BC = do
+  popStack16 >>= setBC
+  tick 12
+
+doInstruction POP_DE = do
+  popStack16 >>= setDE
+  tick 12
+
+doInstruction POP_HL = do
+  popStack16 >>= setHL
+  tick 12
 
 doInstruction NOP = tick 4
 doInstruction STOP = stop >> tick 16

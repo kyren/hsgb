@@ -3,6 +3,7 @@ module Gameboy.Emulation (
 ) where
 
 import Data.Word
+import Data.Bits
 import Gameboy.Util
 import Gameboy.CPU
 import Gameboy.Instructions
@@ -13,6 +14,18 @@ step = do
   case mi of
     Just i -> doInstruction i
     Nothing -> fail "invalid opcode"
+
+data Flag
+  = ZFlag
+  | NFlag
+  | HFlag
+  | CFlag
+
+flagBit :: Flag -> Int
+flagBit ZFlag = 7
+flagBit NFlag = 6
+flagBit HFlag = 5
+flagBit CFlag = 4
 
 setMemory16 :: (Memory m) => Word16 -> Word16 -> m ()
 setMemory16 addr nn = do
@@ -136,6 +149,76 @@ setAtC :: (CPU m, Memory m) => Word8 -> m ()
 setAtC v = do
   c <- getCRegister
   setMemory (makeWord16 c 0xff) v
+
+getFlag :: CPU m => Flag -> m Bool
+getFlag flag = do
+  f <- getFRegister
+  return $ testBit f (flagBit flag)
+
+setFlags :: CPU m => [(Flag, Bool)] -> m ()
+setFlags l = do
+    f <- getFRegister
+    setFRegister $ foldl setFlag f l
+  where
+    setFlag v (flag, True) = setBit v (flagBit flag)
+    setFlag v (flag, False) = clearBit v (flagBit flag)
+
+doAddA :: CPU m => Word8 -> m ()
+doAddA n = do
+  a <- getARegister
+  let (res, h, c) = add8 a n
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setARegister res
+
+doAddCA :: CPU m => Word8 -> m ()
+doAddCA n = do
+  a <- getARegister
+  cflag <- getFlag CFlag
+  let (res, h, c) = add8 a (n + if cflag then 1 else 0)
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setARegister res
+
+doSubA :: CPU m => Word8 -> m ()
+doSubA n = do
+  a <- getARegister
+  let (res, h, c) = sub8 a n
+  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
+  setARegister res
+
+doSubCA :: CPU m => Word8 -> m ()
+doSubCA n = do
+  a <- getARegister
+  cflag <- getFlag CFlag
+  let (res, h, c) = sub8 a (n + if cflag then 1 else 0)
+  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
+  setARegister res
+
+doAndA :: CPU m => Word8 -> m ()
+doAndA n = do
+  a <- getARegister
+  let res = a .&. n
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, True), (CFlag, False)]
+  setARegister res
+
+doOrA :: CPU m => Word8 -> m ()
+doOrA n = do
+  a <- getARegister
+  let res = a .|. n
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, False)]
+  setARegister res
+
+doXorA :: CPU m => Word8 -> m ()
+doXorA n = do
+  a <- getARegister
+  let res = a `xor` n
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, False)]
+  setARegister res
+
+doCpA :: CPU m => Word8 -> m ()
+doCpA n = do
+  a <- getARegister
+  let (res, h, c) = sub8 a n
+  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
 
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 
@@ -298,6 +381,130 @@ doInstruction POP_DE = do
 
 doInstruction POP_HL = do
   popStack16 >>= setHL
+  tick 12
+
+doInstruction (ADD_A_R reg) = do
+  getRegister reg >>= doAddA
+  tick 4
+
+doInstruction (ADD_A_N n) = do
+  doAddA n
+  tick 8
+
+doInstruction ADD_A_ATHL = do
+  getAtHL >>= doAddA
+  tick 8
+
+doInstruction (ADC_A_R reg) = do
+  getRegister reg >>= doAddCA
+  tick 4
+
+doInstruction (ADC_A_N n) = do
+  doAddCA n
+  tick 8
+
+doInstruction ADC_A_ATHL = do
+  getAtHL >>= doAddCA
+  tick 8
+
+doInstruction (SUB_R reg) = do
+  getRegister reg >>= doSubA
+  tick 4
+
+doInstruction (SUB_N n) = do
+  doSubA n
+  tick 8
+
+doInstruction SUB_ATHL = do
+  getAtHL >>= doSubA
+  tick 8
+
+doInstruction (SBC_A_R reg) = do
+  getRegister reg >>= doSubCA
+  tick 4
+
+doInstruction (SBC_A_N n) = do
+  doSubCA n
+  tick 8
+
+doInstruction SBC_A_ATHL = do
+  getAtHL >>= doSubCA
+  tick 8
+
+doInstruction (AND_R reg) = do
+  getRegister reg >>= doAndA
+  tick 4
+
+doInstruction (AND_N n) = do
+  doAndA n
+  tick 8
+
+doInstruction AND_ATHL = do
+  getAtHL >>= doAndA
+  tick 8
+
+doInstruction (OR_R reg) = do
+  getRegister reg >>= doOrA
+  tick 4
+
+doInstruction (OR_N n) = do
+  doOrA n
+  tick 8
+
+doInstruction OR_ATHL = do
+  getAtHL >>= doOrA
+  tick 8
+
+doInstruction (XOR_R reg) = do
+  getRegister reg >>= doXorA
+  tick 4
+
+doInstruction (XOR_N n) = do
+  doXorA n
+  tick 8
+
+doInstruction XOR_ATHL = do
+  getAtHL >>= doXorA
+  tick 8
+
+doInstruction (CP_R reg) = do
+  getRegister reg >>= doCpA
+  tick 4
+
+doInstruction (CP_N n) = do
+  doCpA n
+  tick 8
+
+doInstruction CP_ATHL = do
+  getAtHL >>= doCpA
+  tick 8
+
+doInstruction (INC_R reg) = do
+  v <- getRegister reg
+  let (res, h, _) = add8 v 1
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h)]
+  setRegister reg res
+  tick 4
+
+doInstruction INC_ATHL = do
+  v <- getAtHL
+  let (res, h, _) = add8 v 1
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h)]
+  setAtHL res
+  tick 12
+
+doInstruction (DEC_R reg) = do
+  v <- getRegister reg
+  let (res, h, _) = sub8 v 1
+  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h)]
+  setRegister reg res
+  tick 4
+
+doInstruction DEC_ATHL = do
+  v <- getAtHL
+  let (res, h, _) = sub8 v 1
+  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h)]
+  setAtHL res
   tick 12
 
 doInstruction NOP = tick 4

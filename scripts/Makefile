@@ -10,6 +10,9 @@ test:
 run:
 	nix-shell --pure --command "cd ../; cabal run"
 
+repl:
+	nix-shell --pure --command "cd ../; cabal repl"
+
 clean:
 	nix-shell --pure --command "cd ../; cabal clean"
 

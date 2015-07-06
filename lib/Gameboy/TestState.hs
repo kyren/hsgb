@@ -129,6 +129,9 @@ instance CPU (TestEnvironmentST s) where
 
   stop = writeRef stStopped True
 
+  disableInterrupts = return ()
+  enableInterrupts = return ()
+
   tick n = do
     c <- readRef stClock
     writeRef stClock (c + fromIntegral n)

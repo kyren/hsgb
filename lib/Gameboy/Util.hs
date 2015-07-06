@@ -3,14 +3,17 @@ module Gameboy.Util where
 import Data.Bits
 import Data.Word
 
-makeWord16 :: Word8 -> Word8 -> Word16
-makeWord16 l h = shift (fromIntegral h) 8 .|. fromIntegral l
+makeWord8 :: Word8 -> Word8 -> Word8
+makeWord8 ln hn = shift (fromIntegral hn) 4 .|. fromIntegral ln
 
 lowNibble :: Word8 -> Word8
 lowNibble w = (w .&. 0x0f)
 
 highNibble :: Word8 -> Word8
 highNibble w = shift w (-4) .&. 0x0f
+
+makeWord16 :: Word8 -> Word8 -> Word16
+makeWord16 l h = shift (fromIntegral h) 8 .|. fromIntegral l
 
 lowByte :: Word16 -> Word8
 lowByte = fromIntegral
@@ -33,3 +36,38 @@ sub8 a b = (a - b, borrow4, borrow8)
   where
     borrow4 = lowNibble b > lowNibble a
     borrow8 = b > a
+
+-- add two 16 bit numbers, return the result, as well as the carry 11 bit flag
+-- and the carry 15 bit flag.
+add16 :: Word16 -> Word16 -> (Word16, Bool, Bool)
+add16 a b = (a + b, carry11, carry15)
+  where
+    low12 n = makeWord16 (lowNibble (highByte n)) (lowByte n)
+    carry11 = (low12 a + low12 b) > 0xfff
+    carry15 = (fromIntegral a + fromIntegral b) > (0xffff :: Word32)
+
+rotLC :: Word8 -> (Word8, Bool)
+rotLC b = (r, c)
+  where
+    c = testBit b 7
+    r = rotate b 1
+
+rotL :: Word8 -> Bool -> (Word8, Bool)
+rotL b c = (br, cr)
+  where
+    cr = testBit b 7
+    bs = shift b 1
+    br = if c then setBit bs 0 else bs
+
+rotRC :: Word8 -> (Word8, Bool)
+rotRC b = (r, c)
+  where
+    c = testBit b 0
+    r = rotate b (-1)
+
+rotR :: Word8 -> Bool -> (Word8, Bool)
+rotR b c = (br, cr)
+  where
+    cr = testBit b 0
+    bs = shift b (-1)
+    br = if c then setBit bs 7 else bs

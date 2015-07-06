@@ -44,3 +44,5 @@ class Monad m => CPU m where
 
   halt :: m ()
   stop :: m ()
+  disableInterrupts :: m ()
+  enableInterrupts :: m ()

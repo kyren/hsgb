@@ -220,6 +220,43 @@ doCpA n = do
   let (res, h, c) = sub8 a n
   setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
 
+doAddHL :: CPU m => Word16 -> m ()
+doAddHL nn = do
+  hl <- getHL
+  let (res, h, c) = add16 hl nn
+  setFlags [(NFlag, False), (HFlag, h), (CFlag, c)]
+  setHL res
+
+doRLC :: CPU m => Register -> m ()
+doRLC reg = do
+  a <- getRegister reg
+  let (r, c) = rotLC a
+  setRegister reg r
+  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+
+doRL :: CPU m => Register -> m ()
+doRL reg = do
+  a <- getRegister reg
+  c <- getFlag CFlag
+  let (ar, cr) = rotL a c
+  setRegister reg ar
+  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+
+doRRC :: CPU m => Register -> m ()
+doRRC reg = do
+  a <- getRegister reg
+  let (r, c) = rotRC a
+  setRegister reg r
+  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+
+doRR :: CPU m => Register -> m ()
+doRR reg = do
+  a <- getRegister reg
+  c <- getFlag CFlag
+  let (ar, cr) = rotR a c
+  setRegister reg ar
+  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 
 doInstruction (LD_R_R t s) = do
@@ -507,7 +544,166 @@ doInstruction DEC_ATHL = do
   setAtHL res
   tick 12
 
-doInstruction NOP = tick 4
-doInstruction STOP = stop >> tick 16
+doInstruction ADD_HL_BC = do
+  getBC >>= doAddHL
+  tick 8
 
-doInstruction _ = error "instruction step unimplemented!"
+doInstruction ADD_HL_DE = do
+  getDE >>= doAddHL
+  tick 8
+
+doInstruction ADD_HL_HL = do
+  getHL >>= doAddHL
+  tick 8
+
+doInstruction ADD_HL_SP = do
+  getStackPointer >>= doAddHL
+  tick 8
+
+doInstruction (ADD_SP_N n) = do
+  sp <- getStackPointer
+  let (res, h, c) = add16 sp (fromIntegral n)
+  setFlags [(ZFlag, False), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setStackPointer res
+  tick 16
+
+doInstruction INC_BC = do
+  bc <- getBC
+  setBC (bc + 1)
+  tick 8
+
+doInstruction INC_DE = do
+  de <- getDE
+  setDE (de + 1)
+  tick 8
+
+doInstruction INC_HL = do
+  hl <- getHL
+  setHL (hl + 1)
+  tick 8
+
+doInstruction INC_SP = do
+  sp <- getHL
+  setHL (sp + 1)
+  tick 8
+
+doInstruction DEC_BC = do
+  bc <- getBC
+  setBC (bc - 1)
+  tick 8
+
+doInstruction DEC_DE = do
+  de <- getDE
+  setDE (de - 1)
+  tick 8
+
+doInstruction DEC_HL = do
+  hl <- getHL
+  setHL (hl - 1)
+  tick 8
+
+doInstruction DEC_SP = do
+  sp <- getHL
+  setHL (sp - 1)
+  tick 8
+
+doInstruction (SWAP_R r) = do
+  n <- getRegister r
+  let ln = lowNibble n
+  let hn = highNibble n
+  setRegister r (makeWord8 hn ln)
+  tick 8
+
+doInstruction SWAP_ATHL = do
+  r <- getAtHL
+  let ln = lowNibble r
+  let hn = highNibble r
+  setAtHL (makeWord8 hn ln)
+  tick 16
+
+doInstruction DAA = error "DAA is hard"
+
+doInstruction CPL = do
+  a <- getARegister
+  setARegister (complement a)
+  setFlags [(NFlag, True), (HFlag, True)]
+  tick 4
+
+doInstruction CCF = do
+  c <- getFlag CFlag
+  setFlags [(NFlag, False), (HFlag, False), (CFlag, not c)]
+  tick 4
+
+doInstruction SCF = do
+  setFlags [(NFlag, False), (HFlag, False), (CFlag, True)]
+  tick 4
+
+doInstruction NOP = tick 4
+doInstruction HALT = halt >> tick 4
+doInstruction STOP = stop >> tick 4
+doInstruction DI = disableInterrupts
+doInstruction EI = enableInterrupts
+
+doInstruction RLCA = do
+  doRLC ARegister
+  tick 4
+
+doInstruction RLA = do
+  doRL ARegister
+  tick 4
+
+doInstruction RRCA = do
+  doRRC ARegister
+  tick 4
+
+doInstruction RRA = do
+  doRR ARegister
+  tick 4
+
+doInstruction (RLC_R r) = do
+  doRLC r
+  tick 8
+
+doInstruction RLC_ATHL = do
+  a <- getAtHL
+  let (r, c) = rotLC a
+  setAtHL r
+  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  tick 16
+
+doInstruction (RL_R r) = do
+  doRL r
+  tick 8
+
+doInstruction RL_ATHL = do
+  a <- getAtHL
+  c <- getFlag CFlag
+  let (ar, cr) = rotL a c
+  setAtHL ar
+  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  tick 16
+
+doInstruction (RRC_R r) = do
+  doRRC r
+  tick 8
+
+doInstruction RRC_ATHL = do
+  a <- getAtHL
+  let (r, c) = rotRC a
+  setAtHL r
+  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  tick 16
+
+doInstruction (RR_R r) = do
+  doRR r
+  tick 8
+
+doInstruction RR_ATHL = do
+  a <- getAtHL
+  c <- getFlag CFlag
+  let (ar, cr) = rotR a c
+  setAtHL ar
+  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  tick 16
+
+doInstruction _ = error "instruction unimplemented!"

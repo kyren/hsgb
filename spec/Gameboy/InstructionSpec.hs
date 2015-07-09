@@ -1,6 +1,7 @@
 module Gameboy.InstructionSpec (spec) where
 
 import Data.Word
+import Control.Applicative
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Test.Hspec

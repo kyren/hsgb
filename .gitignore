@@ -5,4 +5,5 @@ dist
 *.chs.h
 .virtualenv
 .hsenv
+.stack-work/
 .*.swp

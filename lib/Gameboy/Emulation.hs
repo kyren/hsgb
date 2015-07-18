@@ -27,6 +27,16 @@ flagBit NFlag = 6
 flagBit HFlag = 5
 flagBit CFlag = 4
 
+bitNumber :: Bit -> Int
+bitNumber Bit0 = 0
+bitNumber Bit1 = 1
+bitNumber Bit2 = 2
+bitNumber Bit3 = 3
+bitNumber Bit4 = 4
+bitNumber Bit5 = 5
+bitNumber Bit6 = 6
+bitNumber Bit7 = 7
+
 setMemory16 :: (Memory m) => Word16 -> Word16 -> m ()
 setMemory16 addr nn = do
   setMemory addr (highByte nn)
@@ -704,6 +714,90 @@ doInstruction RR_ATHL = do
   let (ar, cr) = rotR a c
   setAtHL ar
   setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  tick 16
+
+doInstruction (SLA_R r) = do
+  b <- getRegister r
+  let c = testBit b 7
+  let bs = shift b 1
+  setRegister r bs
+  setFlags [(ZFlag, bs == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  tick 8
+
+doInstruction SLA_ATHL = do
+  b <- getAtHL
+  let c = testBit b 7
+  let bs = shift b 1
+  setAtHL bs
+  setFlags [(ZFlag, bs == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  tick 16
+
+doInstruction (SRA_R r) = do
+  b <- getRegister r
+  let lsb = testBit b 0
+  let msb = testBit b 7
+  let bshift = shift b (-1)
+  let res = if msb then setBit bshift 7 else clearBit bshift 7
+  setRegister r res
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  tick 8
+
+doInstruction SRA_ATHL = do
+  b <- getAtHL
+  let lsb = testBit b 0
+  let msb = testBit b 7
+  let bshift = shift b (-1)
+  let res = if msb then setBit bshift 7 else clearBit bshift 7
+  setAtHL res
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  tick 16
+
+doInstruction (SRL_R r) = do
+  b <- getRegister r
+  let lsb = testBit b 0
+  let res = shift b (-1)
+  setRegister r res
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  tick 8
+
+doInstruction SRL_ATHL = do
+  b <- getAtHL
+  let lsb = testBit b 0
+  let res = shift b (-1)
+  setAtHL res
+  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  tick 16
+
+doInstruction (BIT_B_R b r) = do
+  val <- getRegister r
+  let btest = testBit val (bitNumber b)
+  setFlags [(ZFlag, not btest), (NFlag, False), (HFlag, True)]
+  tick 8
+
+doInstruction (BIT_B_ATHL b) = do
+  val <- getAtHL
+  let btest = testBit val (bitNumber b)
+  setFlags [(ZFlag, not btest), (NFlag, False), (HFlag, True)]
+  tick 16
+
+doInstruction (SET_B_R b r) = do
+  val <- getRegister r
+  setRegister r (setBit val (bitNumber b))
+  tick 8
+
+doInstruction (SET_B_ATHL b) = do
+  val <- getAtHL
+  setAtHL (setBit val (bitNumber b))
+  tick 16
+
+doInstruction (RES_B_R b r) = do
+  val <- getRegister r
+  setRegister r (clearBit val (bitNumber b))
+  tick 8
+
+doInstruction (RES_B_ATHL b) = do
+  val <- getAtHL
+  setAtHL (clearBit val (bitNumber b))
   tick 16
 
 doInstruction _ = error "instruction unimplemented!"

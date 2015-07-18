@@ -1,5 +1,5 @@
 {
-  "cmd": "make -Cbuild",
+  "cmd": "~/.local/bin/stack build",
   "name": "hsgb",
   "args": [],
   "sh": true,
@@ -7,19 +7,10 @@
   "errorMatch": "^(?<file>[^\\.]+.hs):(?<line>\\d+):(?<col>\\d+)",
   "targets": {
     "build": {
-      "cmd": "make -Cbuild build"
+      "cmd": "stack build"
     },
     "test": {
-      "cmd": "make -Cbuild test"
-    },
-    "run": {
-      "cmd": "make -Cbuild run"
-    },
-    "clean": {
-      "cmd": "make -Cbuild clean"
-    },
-    "configure": {
-      "cmd": "make -Cbuild configure"
+      "cmd": "stack test"
     }
   }
 }

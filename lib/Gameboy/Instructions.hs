@@ -1056,7 +1056,7 @@ decodeInstruction getWord8 = do
       0xca -> decnn (JP_C_NN Zero)
       0xd2 -> decnn (JP_C_NN NCarry)
       0xda -> decnn (JP_C_NN Carry)
-      0xe9 -> dec JP_ATHL 
+      0xe9 -> dec JP_ATHL
 
       0x18 -> decn JR_N
       0x20 -> decn (JR_C_N NZero)
@@ -1088,7 +1088,7 @@ decodeInstruction getWord8 = do
       0xd9 -> dec RETI
 
       0x10 -> do
-        w2 <- getWord8 
+        w2 <- getWord8
         case w2 of
           0x00 -> dec STOP
           _ -> return Nothing

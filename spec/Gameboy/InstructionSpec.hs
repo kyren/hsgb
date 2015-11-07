@@ -23,7 +23,7 @@ decodeInstructions ws = evalStateT go ws
         Just i -> lift $ (i:) <$> decodeInstructions restBytes
     getWord8 = do
       bytes <- get
-      case bytes of 
+      case bytes of
         [] -> lift Nothing
         (b:bs) -> do
           put bs

@@ -8,7 +8,6 @@ import Data.Word
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import Control.Monad
-import Control.Applicative
 import Control.Monad.ST
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader

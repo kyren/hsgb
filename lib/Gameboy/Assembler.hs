@@ -8,7 +8,6 @@ import Prelude hiding (and, or)
 import Data.Maybe
 import Data.Char
 import Data.Word
-import Control.Applicative ((<$>))
 import Control.Monad
 import Text.Parsec
 import qualified Data.Vector.Unboxed as VU

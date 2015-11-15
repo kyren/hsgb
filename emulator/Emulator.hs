@@ -56,15 +56,15 @@ drawScreen renderer screen = alloca $ \rect -> sequence_ [drawPixel rect x y (pi
       checkSDL $ SDL.renderFillRect renderer rect
       return ()
 
-mainLoop :: SDL.Renderer -> IO ()
-mainLoop renderer = do
+mainLoop :: EmulatorState -> SDL.Renderer -> IO ()
+mainLoop state renderer = do
   checkSDL $ SDL.setRenderDrawColor renderer 0 0 0 255
   checkSDL $ SDL.renderClear renderer
   checkSDL $ SDL.setRenderDrawColor renderer 255 255 255 255
-  drawScreen renderer testPattern
+  drawScreen renderer (renderFrame state)
   SDL.renderPresent renderer
   quit <- processEvents
-  unless quit (mainLoop renderer)
+  unless quit (mainLoop (stepFrame state) renderer)
 
 main :: IO ()
 main = do
@@ -74,7 +74,7 @@ main = do
 
   SDL.showWindow window
 
-  mainLoop renderer
+  mainLoop initialState renderer
 
   SDL.destroyWindow window
   SDL.quit

@@ -2,7 +2,7 @@ import Control.Monad
 import Foreign
 import Foreign.C
 import qualified Graphics.UI.SDL as SDL
-import Gameboy.Screen
+import Gameboy.Emulation
 
 screenWidth :: Int
 screenWidth = 800
@@ -43,11 +43,11 @@ pixelGray LightGray = 192
 pixelGray White = 255
 
 drawScreen :: SDL.Renderer -> Screen -> IO ()
-drawScreen renderer screen = alloca $ \rect -> sequence_ [drawPixel rect x y (pixelAt screen x y) | x <- [0 .. horizontalPixels - 1], y <- [0 .. verticalPixels - 1]]
+drawScreen renderer screen = alloca $ \rect -> sequence_ [drawPixel rect x y (pixelAt screen x y) | x <- [0 .. horizontalScreenPixels - 1], y <- [0 .. verticalScreenPixels - 1]]
   where
     drawPixel rect x y p = do
-      let width = screenWidth `div` horizontalPixels
-      let height = screenWidth `div` verticalPixels
+      let width = screenWidth `div` horizontalScreenPixels
+      let height = screenWidth `div` verticalScreenPixels
       let xmin = x * width
       let ymin = y * height
       let gray = pixelGray p

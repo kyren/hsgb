@@ -13,7 +13,6 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Data.STRef
 import Gameboy.CPU
-import Gameboy.Emulation
 
 -- Runs a gameboy cpu ish program starting at 0x0 instead of 0x100 and stops at
 -- the first STOP instruction

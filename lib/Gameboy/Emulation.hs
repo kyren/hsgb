@@ -4,6 +4,7 @@ module Gameboy.Emulation (
 
 import Data.Word
 import Data.Bits
+import Control.Monad
 import Gameboy.Util
 import Gameboy.CPU
 import Gameboy.Instructions
@@ -172,6 +173,12 @@ setFlags l = do
   where
     setFlag v (flag, True) = setBit v (flagBit flag)
     setFlag v (flag, False) = clearBit v (flagBit flag)
+
+testCond :: CPU m => Cond -> m Bool
+testCond Zero = getFlag ZFlag
+testCond NZero = not <$> getFlag ZFlag
+testCond Carry = getFlag CFlag
+testCond NCarry = not <$> getFlag CFlag
 
 doAddA :: CPU m => Word8 -> m ()
 doAddA n = do
@@ -799,5 +806,31 @@ doInstruction (RES_B_ATHL b) = do
   val <- getAtHL
   setAtHL (clearBit val (bitNumber b))
   tick 16
+
+doInstruction (JP_NN nn) = do
+  setProgramCounter nn
+  tick 12
+
+doInstruction (JP_C_NN cond nn) = do
+  c <- testCond cond
+  unless c (setProgramCounter nn)
+  tick 12
+
+doInstruction (JP_ATHL) = do
+  addr <- getHL
+  setProgramCounter addr
+  tick 4
+
+doInstruction (JR_N n) = do
+  pc <- getProgramCounter
+  setProgramCounter (pc + fromIntegral n)
+  tick 8
+
+doInstruction (JR_C_N cond n) = do
+  c <- testCond cond
+  when c $ do
+    pc <- getProgramCounter
+    setProgramCounter (pc + fromIntegral n)
+  tick 8
 
 doInstruction _ = error "instruction unimplemented!"

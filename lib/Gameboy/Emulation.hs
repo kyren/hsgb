@@ -833,4 +833,48 @@ doInstruction (JR_C_N cond n) = do
     setProgramCounter (pc + fromIntegral n)
   tick 8
 
-doInstruction _ = error "instruction unimplemented!"
+doInstruction (CALL_NN nn) = do
+  pc <- getProgramCounter
+  pushStack16 (pc + 1)
+  setProgramCounter nn
+  tick 12
+
+doInstruction (CALL_C_NN cond nn) = do
+  c <- testCond cond
+  when c $ do
+    pc <- getProgramCounter
+    pushStack16 (pc + 1)
+    setProgramCounter nn
+  tick 12
+
+doInstruction (RST_RA ra) = do
+    getProgramCounter >>= pushStack16
+    setProgramCounter (resetAddress ra)
+    tick 32
+  where
+    resetAddress Reset00 = 0x00
+    resetAddress Reset08 = 0x08
+    resetAddress Reset10 = 0x10
+    resetAddress Reset18 = 0x18
+    resetAddress Reset20 = 0x20
+    resetAddress Reset28 = 0x28
+    resetAddress Reset30 = 0x30
+    resetAddress Reset38 = 0x38
+
+doInstruction (RET) = do
+  nn <- popStack16
+  setProgramCounter nn
+  tick 8
+
+doInstruction (RET_C cond) = do
+  c <- testCond cond
+  when c $ do
+    nn <- popStack16
+    setProgramCounter nn
+  tick 8
+
+doInstruction (RETI) = do
+  nn <- popStack16
+  setProgramCounter nn
+  enableInterrupts
+  tick 8

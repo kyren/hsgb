@@ -1,39 +1,22 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Gameboy.Emulation (
-  Pixel(..),
-  horizontalScreenPixels,
-  verticalScreenPixels,
-  Screen,
-  pixelAt,
-  EmulatorState,
+  EmulatorState(..),
   initialState,
-  renderFrame,
-  stepFrame
+  loadRom,
+  stepEmulator
 ) where
 
 import Data.Word
-import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import qualified Data.ByteString as BS
 import Data.STRef
+import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Gameboy.CPU
-
-data Pixel = Black | DarkGray | LightGray | White
-
-horizontalScreenPixels :: Int
-horizontalScreenPixels = 160
-
-verticalScreenPixels :: Int
-verticalScreenPixels = 144
-
-type Screen = V.Vector Pixel
-
-pixelAt :: V.Vector Pixel -> Int -> Int -> Pixel
-pixelAt screen x y = screen V.! (y * horizontalScreenPixels + x)
 
 data EmulatorState = EmulatorState {
     interruptsEnabled :: Word8,
@@ -75,11 +58,12 @@ initialState = EmulatorState {
       spriteAttributeData = VU.replicate 0x80 0x0
     }
 
-renderFrame :: EmulatorState -> Screen
-renderFrame _ = V.fromList $ take (horizontalScreenPixels * verticalScreenPixels) $ cycle [Black, Black, DarkGray, DarkGray, LightGray, LightGray, White, White, White]
-
-stepFrame :: EmulatorState -> EmulatorState
-stepFrame state = state
+loadRom :: BS.ByteString -> Either String EmulatorState
+loadRom rom = if BS.length rom == 0x8000 then Right state else Left "Improper rom size"
+  where
+    state = initialState { cartridgeRomBank0 = bank0, cartridgeRomBank1 = bank1 }
+    bank0 = VU.generate 0x4000 (BS.index rom)
+    bank1 = VU.generate 0x4000 (\i -> BS.index rom (i + 0x4000))
 
 data WorkingState s = WorkingState {
     workingInterruptsEnabled :: STRef s Word8,
@@ -102,6 +86,54 @@ data WorkingState s = WorkingState {
 newtype WorkingEnvironment s a = WorkingEnvironment {
     runWorkingEnvironment :: ReaderT (WorkingState s) (ST s) a
   } deriving (Monad, Applicative, Functor)
+
+freezeWorkingState :: WorkingState s -> ST s EmulatorState
+freezeWorkingState st = EmulatorState <$>
+    getRef workingInterruptsEnabled <*>
+    getRef workingStackPointer <*>
+    getRef workingProgramCounter <*>
+    getRef workingARegister <*>
+    getRef workingBRegister <*>
+    getRef workingCRegister <*>
+    getRef workingDRegister <*>
+    getRef workingERegister <*>
+    getRef workingHRegister <*>
+    getRef workingLRegister <*>
+    getRef workingFRegister <*>
+    freezeVector workingCartridgeRomBank0 <*>
+    freezeVector workingCartridgeRomBank1 <*>
+    freezeVector workingInternalRamBank0 <*>
+    freezeVector workingZeroPage <*>
+    freezeVector workingCharacterRam <*>
+    freezeVector workingBgMapData <*>
+    freezeVector workingSpriteAttributeData
+  where
+    getRef f = readSTRef (f st)
+    freezeVector f = VU.freeze (f st)
+
+thawWorkingState :: EmulatorState -> ST s (WorkingState s)
+thawWorkingState st = WorkingState <$>
+    makeRef interruptsEnabled <*>
+    makeRef stackPointer <*>
+    makeRef programCounter <*>
+    makeRef aRegister <*>
+    makeRef bRegister <*>
+    makeRef cRegister <*>
+    makeRef dRegister <*>
+    makeRef eRegister <*>
+    makeRef hRegister <*>
+    makeRef lRegister <*>
+    makeRef fRegister <*>
+    thawVector cartridgeRomBank0 <*>
+    thawVector cartridgeRomBank1 <*>
+    thawVector internalRamBank0 <*>
+    thawVector zeroPage <*>
+    thawVector characterRam <*>
+    thawVector bgMapData <*>
+    thawVector spriteAttributeData
+  where
+    makeRef f = newSTRef (f st)
+    thawVector f = VU.thaw (f st)
 
 readRef :: (WorkingState s -> STRef s v) -> WorkingEnvironment s v
 readRef field = WorkingEnvironment $ do
@@ -186,3 +218,9 @@ instance Memory (WorkingEnvironment s) where
     | addr < 0xff80 = fail "Unimplemented memory region"
     | addr < 0xffff = writeMem workingZeroPage (addr - 0xfe80) byte
     | otherwise = writeRef workingInterruptsEnabled byte
+
+stepEmulator :: EmulatorState -> Int -> EmulatorState
+stepEmulator state cycles = runST $ do
+    working <- thawWorkingState state
+    (runReaderT . runWorkingEnvironment) (replicateM_ cycles step) working
+    freezeWorkingState working

@@ -8,6 +8,7 @@ module Gameboy.Instructions (
   decodeInstruction
 ) where
 
+import Data.Int
 import Data.Word
 import Gameboy.Util
 
@@ -83,7 +84,7 @@ data Instruction
   | LD_SP_NN Word16
 
   | LD_SP_HL
-  | LDHL_SP_N Word8
+  | LDHL_SP_N Int8
   | LD_ATNN_SP Word16
 
   | PUSH_AF
@@ -139,7 +140,7 @@ data Instruction
   | ADD_HL_HL
   | ADD_HL_SP
 
-  | ADD_SP_N Word8
+  | ADD_SP_N Int8
 
   | INC_BC
   | INC_DE
@@ -204,8 +205,8 @@ data Instruction
   | JP_C_NN Cond Word16
   | JP_ATHL
 
-  | JR_N Word8
-  | JR_C_N Cond Word8
+  | JR_N Int8
+  | JR_C_N Cond Int8
 
   | CALL_NN Word16
   | CALL_C_NN Cond Word16
@@ -328,7 +329,7 @@ encodeInstruction (LD_HL_NN nn) = [0x21, lowByte nn, highByte nn]
 encodeInstruction (LD_SP_NN nn) = [0x31, lowByte nn, highByte nn]
 
 encodeInstruction LD_SP_HL = [0xf9]
-encodeInstruction (LDHL_SP_N n) = [0xf8, n]
+encodeInstruction (LDHL_SP_N n) = [0xf8, fromIntegral n]
 encodeInstruction (LD_ATNN_SP nn) = [0x08, lowByte nn, highByte nn]
 
 encodeInstruction PUSH_AF = [0xf5]
@@ -444,7 +445,7 @@ encodeInstruction ADD_HL_DE = [0x19]
 encodeInstruction ADD_HL_HL = [0x29]
 encodeInstruction ADD_HL_SP = [0x39]
 
-encodeInstruction (ADD_SP_N n) = [0xe8, n]
+encodeInstruction (ADD_SP_N n) = [0xe8, fromIntegral n]
 
 encodeInstruction INC_BC = [0x03]
 encodeInstruction INC_DE = [0x13]
@@ -553,14 +554,14 @@ encodeInstruction (BIT_B_R Bit0 HRegister) = [0xcb, 0x44]
 encodeInstruction (BIT_B_R Bit0 LRegister) = [0xcb, 0x45]
 encodeInstruction (BIT_B_ATHL Bit0) = [0xcb, 0x46]
 
-encodeInstruction (BIT_B_R Bit1 ARegister) = [0xcb, 0x48]
-encodeInstruction (BIT_B_R Bit1 BRegister) = [0xcb, 0x49]
-encodeInstruction (BIT_B_R Bit1 CRegister) = [0xcb, 0x4a]
-encodeInstruction (BIT_B_R Bit1 DRegister) = [0xcb, 0x4b]
-encodeInstruction (BIT_B_R Bit1 ERegister) = [0xcb, 0x4c]
-encodeInstruction (BIT_B_R Bit1 HRegister) = [0xcb, 0x4d]
-encodeInstruction (BIT_B_R Bit1 LRegister) = [0xcb, 0x4e]
-encodeInstruction (BIT_B_ATHL Bit1) = [0xcb, 0x4f]
+encodeInstruction (BIT_B_R Bit1 ARegister) = [0xcb, 0x4f]
+encodeInstruction (BIT_B_R Bit1 BRegister) = [0xcb, 0x48]
+encodeInstruction (BIT_B_R Bit1 CRegister) = [0xcb, 0x49]
+encodeInstruction (BIT_B_R Bit1 DRegister) = [0xcb, 0x4a]
+encodeInstruction (BIT_B_R Bit1 ERegister) = [0xcb, 0x4b]
+encodeInstruction (BIT_B_R Bit1 HRegister) = [0xcb, 0x4c]
+encodeInstruction (BIT_B_R Bit1 LRegister) = [0xcb, 0x4d]
+encodeInstruction (BIT_B_ATHL Bit1) = [0xcb, 0x4e]
 
 encodeInstruction (BIT_B_R Bit2 ARegister) = [0xcb, 0x57]
 encodeInstruction (BIT_B_R Bit2 BRegister) = [0xcb, 0x50]
@@ -571,14 +572,14 @@ encodeInstruction (BIT_B_R Bit2 HRegister) = [0xcb, 0x54]
 encodeInstruction (BIT_B_R Bit2 LRegister) = [0xcb, 0x55]
 encodeInstruction (BIT_B_ATHL Bit2) = [0xcb, 0x56]
 
-encodeInstruction (BIT_B_R Bit3 ARegister) = [0xcb, 0x58]
-encodeInstruction (BIT_B_R Bit3 BRegister) = [0xcb, 0x59]
-encodeInstruction (BIT_B_R Bit3 CRegister) = [0xcb, 0x5a]
-encodeInstruction (BIT_B_R Bit3 DRegister) = [0xcb, 0x5b]
-encodeInstruction (BIT_B_R Bit3 ERegister) = [0xcb, 0x5c]
-encodeInstruction (BIT_B_R Bit3 HRegister) = [0xcb, 0x5d]
-encodeInstruction (BIT_B_R Bit3 LRegister) = [0xcb, 0x5e]
-encodeInstruction (BIT_B_ATHL Bit3) = [0xcb, 0x5f]
+encodeInstruction (BIT_B_R Bit3 ARegister) = [0xcb, 0x5f]
+encodeInstruction (BIT_B_R Bit3 BRegister) = [0xcb, 0x58]
+encodeInstruction (BIT_B_R Bit3 CRegister) = [0xcb, 0x59]
+encodeInstruction (BIT_B_R Bit3 DRegister) = [0xcb, 0x5a]
+encodeInstruction (BIT_B_R Bit3 ERegister) = [0xcb, 0x5b]
+encodeInstruction (BIT_B_R Bit3 HRegister) = [0xcb, 0x5c]
+encodeInstruction (BIT_B_R Bit3 LRegister) = [0xcb, 0x5d]
+encodeInstruction (BIT_B_ATHL Bit3) = [0xcb, 0x5e]
 
 encodeInstruction (BIT_B_R Bit4 ARegister) = [0xcb, 0x67]
 encodeInstruction (BIT_B_R Bit4 BRegister) = [0xcb, 0x60]
@@ -589,14 +590,14 @@ encodeInstruction (BIT_B_R Bit4 HRegister) = [0xcb, 0x64]
 encodeInstruction (BIT_B_R Bit4 LRegister) = [0xcb, 0x65]
 encodeInstruction (BIT_B_ATHL Bit4) = [0xcb, 0x66]
 
-encodeInstruction (BIT_B_R Bit5 ARegister) = [0xcb, 0x68]
-encodeInstruction (BIT_B_R Bit5 BRegister) = [0xcb, 0x69]
-encodeInstruction (BIT_B_R Bit5 CRegister) = [0xcb, 0x6a]
-encodeInstruction (BIT_B_R Bit5 DRegister) = [0xcb, 0x6b]
-encodeInstruction (BIT_B_R Bit5 ERegister) = [0xcb, 0x6c]
-encodeInstruction (BIT_B_R Bit5 HRegister) = [0xcb, 0x6d]
-encodeInstruction (BIT_B_R Bit5 LRegister) = [0xcb, 0x6e]
-encodeInstruction (BIT_B_ATHL Bit5) = [0xcb, 0x6f]
+encodeInstruction (BIT_B_R Bit5 ARegister) = [0xcb, 0x6f]
+encodeInstruction (BIT_B_R Bit5 BRegister) = [0xcb, 0x68]
+encodeInstruction (BIT_B_R Bit5 CRegister) = [0xcb, 0x69]
+encodeInstruction (BIT_B_R Bit5 DRegister) = [0xcb, 0x6a]
+encodeInstruction (BIT_B_R Bit5 ERegister) = [0xcb, 0x6b]
+encodeInstruction (BIT_B_R Bit5 HRegister) = [0xcb, 0x6c]
+encodeInstruction (BIT_B_R Bit5 LRegister) = [0xcb, 0x6d]
+encodeInstruction (BIT_B_ATHL Bit5) = [0xcb, 0x6e]
 
 encodeInstruction (BIT_B_R Bit6 ARegister) = [0xcb, 0x77]
 encodeInstruction (BIT_B_R Bit6 BRegister) = [0xcb, 0x70]
@@ -607,14 +608,14 @@ encodeInstruction (BIT_B_R Bit6 HRegister) = [0xcb, 0x74]
 encodeInstruction (BIT_B_R Bit6 LRegister) = [0xcb, 0x75]
 encodeInstruction (BIT_B_ATHL Bit6) = [0xcb, 0x76]
 
-encodeInstruction (BIT_B_R Bit7 ARegister) = [0xcb, 0x78]
-encodeInstruction (BIT_B_R Bit7 BRegister) = [0xcb, 0x79]
-encodeInstruction (BIT_B_R Bit7 CRegister) = [0xcb, 0x7a]
-encodeInstruction (BIT_B_R Bit7 DRegister) = [0xcb, 0x7b]
-encodeInstruction (BIT_B_R Bit7 ERegister) = [0xcb, 0x7c]
-encodeInstruction (BIT_B_R Bit7 HRegister) = [0xcb, 0x7d]
-encodeInstruction (BIT_B_R Bit7 LRegister) = [0xcb, 0x7e]
-encodeInstruction (BIT_B_ATHL Bit7) = [0xcb, 0x7f]
+encodeInstruction (BIT_B_R Bit7 ARegister) = [0xcb, 0x7f]
+encodeInstruction (BIT_B_R Bit7 BRegister) = [0xcb, 0x78]
+encodeInstruction (BIT_B_R Bit7 CRegister) = [0xcb, 0x79]
+encodeInstruction (BIT_B_R Bit7 DRegister) = [0xcb, 0x7a]
+encodeInstruction (BIT_B_R Bit7 ERegister) = [0xcb, 0x7b]
+encodeInstruction (BIT_B_R Bit7 HRegister) = [0xcb, 0x7c]
+encodeInstruction (BIT_B_R Bit7 LRegister) = [0xcb, 0x7d]
+encodeInstruction (BIT_B_ATHL Bit7) = [0xcb, 0x7e]
 
 encodeInstruction (SET_B_R Bit0 ARegister) = [0xcb, 0xc7]
 encodeInstruction (SET_B_R Bit0 BRegister) = [0xcb, 0xc0]
@@ -625,14 +626,14 @@ encodeInstruction (SET_B_R Bit0 HRegister) = [0xcb, 0xc4]
 encodeInstruction (SET_B_R Bit0 LRegister) = [0xcb, 0xc5]
 encodeInstruction (SET_B_ATHL Bit0) = [0xcb, 0xc6]
 
-encodeInstruction (SET_B_R Bit1 ARegister) = [0xcb, 0xc8]
-encodeInstruction (SET_B_R Bit1 BRegister) = [0xcb, 0xc9]
-encodeInstruction (SET_B_R Bit1 CRegister) = [0xcb, 0xca]
-encodeInstruction (SET_B_R Bit1 DRegister) = [0xcb, 0xcb]
-encodeInstruction (SET_B_R Bit1 ERegister) = [0xcb, 0xcc]
-encodeInstruction (SET_B_R Bit1 HRegister) = [0xcb, 0xcd]
-encodeInstruction (SET_B_R Bit1 LRegister) = [0xcb, 0xce]
-encodeInstruction (SET_B_ATHL Bit1) = [0xcb, 0xcf]
+encodeInstruction (SET_B_R Bit1 ARegister) = [0xcb, 0xcf]
+encodeInstruction (SET_B_R Bit1 BRegister) = [0xcb, 0xc8]
+encodeInstruction (SET_B_R Bit1 CRegister) = [0xcb, 0xc9]
+encodeInstruction (SET_B_R Bit1 DRegister) = [0xcb, 0xca]
+encodeInstruction (SET_B_R Bit1 ERegister) = [0xcb, 0xcb]
+encodeInstruction (SET_B_R Bit1 HRegister) = [0xcb, 0xcc]
+encodeInstruction (SET_B_R Bit1 LRegister) = [0xcb, 0xcd]
+encodeInstruction (SET_B_ATHL Bit1) = [0xcb, 0xce]
 
 encodeInstruction (SET_B_R Bit2 ARegister) = [0xcb, 0xd7]
 encodeInstruction (SET_B_R Bit2 BRegister) = [0xcb, 0xd0]
@@ -643,14 +644,14 @@ encodeInstruction (SET_B_R Bit2 HRegister) = [0xcb, 0xd4]
 encodeInstruction (SET_B_R Bit2 LRegister) = [0xcb, 0xd5]
 encodeInstruction (SET_B_ATHL Bit2) = [0xcb, 0xd6]
 
-encodeInstruction (SET_B_R Bit3 ARegister) = [0xcb, 0xd8]
-encodeInstruction (SET_B_R Bit3 BRegister) = [0xcb, 0xd9]
-encodeInstruction (SET_B_R Bit3 CRegister) = [0xcb, 0xda]
-encodeInstruction (SET_B_R Bit3 DRegister) = [0xcb, 0xdb]
-encodeInstruction (SET_B_R Bit3 ERegister) = [0xcb, 0xdc]
-encodeInstruction (SET_B_R Bit3 HRegister) = [0xcb, 0xdd]
-encodeInstruction (SET_B_R Bit3 LRegister) = [0xcb, 0xde]
-encodeInstruction (SET_B_ATHL Bit3) = [0xcb, 0xdf]
+encodeInstruction (SET_B_R Bit3 ARegister) = [0xcb, 0xdf]
+encodeInstruction (SET_B_R Bit3 BRegister) = [0xcb, 0xd8]
+encodeInstruction (SET_B_R Bit3 CRegister) = [0xcb, 0xd9]
+encodeInstruction (SET_B_R Bit3 DRegister) = [0xcb, 0xda]
+encodeInstruction (SET_B_R Bit3 ERegister) = [0xcb, 0xdb]
+encodeInstruction (SET_B_R Bit3 HRegister) = [0xcb, 0xdc]
+encodeInstruction (SET_B_R Bit3 LRegister) = [0xcb, 0xdd]
+encodeInstruction (SET_B_ATHL Bit3) = [0xcb, 0xde]
 
 encodeInstruction (SET_B_R Bit4 ARegister) = [0xcb, 0xe7]
 encodeInstruction (SET_B_R Bit4 BRegister) = [0xcb, 0xe0]
@@ -661,14 +662,14 @@ encodeInstruction (SET_B_R Bit4 HRegister) = [0xcb, 0xe4]
 encodeInstruction (SET_B_R Bit4 LRegister) = [0xcb, 0xe5]
 encodeInstruction (SET_B_ATHL Bit4) = [0xcb, 0xe6]
 
-encodeInstruction (SET_B_R Bit5 ARegister) = [0xcb, 0xe8]
-encodeInstruction (SET_B_R Bit5 BRegister) = [0xcb, 0xe9]
-encodeInstruction (SET_B_R Bit5 CRegister) = [0xcb, 0xea]
-encodeInstruction (SET_B_R Bit5 DRegister) = [0xcb, 0xeb]
-encodeInstruction (SET_B_R Bit5 ERegister) = [0xcb, 0xec]
-encodeInstruction (SET_B_R Bit5 HRegister) = [0xcb, 0xed]
-encodeInstruction (SET_B_R Bit5 LRegister) = [0xcb, 0xee]
-encodeInstruction (SET_B_ATHL Bit5) = [0xcb, 0xef]
+encodeInstruction (SET_B_R Bit5 ARegister) = [0xcb, 0xef]
+encodeInstruction (SET_B_R Bit5 BRegister) = [0xcb, 0xe8]
+encodeInstruction (SET_B_R Bit5 CRegister) = [0xcb, 0xe9]
+encodeInstruction (SET_B_R Bit5 DRegister) = [0xcb, 0xea]
+encodeInstruction (SET_B_R Bit5 ERegister) = [0xcb, 0xeb]
+encodeInstruction (SET_B_R Bit5 HRegister) = [0xcb, 0xec]
+encodeInstruction (SET_B_R Bit5 LRegister) = [0xcb, 0xed]
+encodeInstruction (SET_B_ATHL Bit5) = [0xcb, 0xee]
 
 encodeInstruction (SET_B_R Bit6 ARegister) = [0xcb, 0xf7]
 encodeInstruction (SET_B_R Bit6 BRegister) = [0xcb, 0xf0]
@@ -679,14 +680,14 @@ encodeInstruction (SET_B_R Bit6 HRegister) = [0xcb, 0xf4]
 encodeInstruction (SET_B_R Bit6 LRegister) = [0xcb, 0xf5]
 encodeInstruction (SET_B_ATHL Bit6) = [0xcb, 0xf6]
 
-encodeInstruction (SET_B_R Bit7 ARegister) = [0xcb, 0xf8]
-encodeInstruction (SET_B_R Bit7 BRegister) = [0xcb, 0xf9]
-encodeInstruction (SET_B_R Bit7 CRegister) = [0xcb, 0xfa]
-encodeInstruction (SET_B_R Bit7 DRegister) = [0xcb, 0xfb]
-encodeInstruction (SET_B_R Bit7 ERegister) = [0xcb, 0xfc]
-encodeInstruction (SET_B_R Bit7 HRegister) = [0xcb, 0xfd]
-encodeInstruction (SET_B_R Bit7 LRegister) = [0xcb, 0xfe]
-encodeInstruction (SET_B_ATHL Bit7) = [0xcb, 0xff]
+encodeInstruction (SET_B_R Bit7 ARegister) = [0xcb, 0xff]
+encodeInstruction (SET_B_R Bit7 BRegister) = [0xcb, 0xf8]
+encodeInstruction (SET_B_R Bit7 CRegister) = [0xcb, 0xf9]
+encodeInstruction (SET_B_R Bit7 DRegister) = [0xcb, 0xfa]
+encodeInstruction (SET_B_R Bit7 ERegister) = [0xcb, 0xfb]
+encodeInstruction (SET_B_R Bit7 HRegister) = [0xcb, 0xfc]
+encodeInstruction (SET_B_R Bit7 LRegister) = [0xcb, 0xfd]
+encodeInstruction (SET_B_ATHL Bit7) = [0xcb, 0xfe]
 
 encodeInstruction (RES_B_R Bit0 ARegister) = [0xcb, 0x87]
 encodeInstruction (RES_B_R Bit0 BRegister) = [0xcb, 0x80]
@@ -697,14 +698,14 @@ encodeInstruction (RES_B_R Bit0 HRegister) = [0xcb, 0x84]
 encodeInstruction (RES_B_R Bit0 LRegister) = [0xcb, 0x85]
 encodeInstruction (RES_B_ATHL Bit0) = [0xcb, 0x86]
 
-encodeInstruction (RES_B_R Bit1 ARegister) = [0xcb, 0x88]
-encodeInstruction (RES_B_R Bit1 BRegister) = [0xcb, 0x89]
-encodeInstruction (RES_B_R Bit1 CRegister) = [0xcb, 0x8a]
-encodeInstruction (RES_B_R Bit1 DRegister) = [0xcb, 0x8b]
-encodeInstruction (RES_B_R Bit1 ERegister) = [0xcb, 0x8c]
-encodeInstruction (RES_B_R Bit1 HRegister) = [0xcb, 0x8d]
-encodeInstruction (RES_B_R Bit1 LRegister) = [0xcb, 0x8e]
-encodeInstruction (RES_B_ATHL Bit1) = [0xcb, 0x8f]
+encodeInstruction (RES_B_R Bit1 ARegister) = [0xcb, 0x8f]
+encodeInstruction (RES_B_R Bit1 BRegister) = [0xcb, 0x88]
+encodeInstruction (RES_B_R Bit1 CRegister) = [0xcb, 0x89]
+encodeInstruction (RES_B_R Bit1 DRegister) = [0xcb, 0x8a]
+encodeInstruction (RES_B_R Bit1 ERegister) = [0xcb, 0x8b]
+encodeInstruction (RES_B_R Bit1 HRegister) = [0xcb, 0x8c]
+encodeInstruction (RES_B_R Bit1 LRegister) = [0xcb, 0x8d]
+encodeInstruction (RES_B_ATHL Bit1) = [0xcb, 0x8e]
 
 encodeInstruction (RES_B_R Bit2 ARegister) = [0xcb, 0x97]
 encodeInstruction (RES_B_R Bit2 BRegister) = [0xcb, 0x90]
@@ -715,14 +716,14 @@ encodeInstruction (RES_B_R Bit2 HRegister) = [0xcb, 0x94]
 encodeInstruction (RES_B_R Bit2 LRegister) = [0xcb, 0x95]
 encodeInstruction (RES_B_ATHL Bit2) = [0xcb, 0x96]
 
-encodeInstruction (RES_B_R Bit3 ARegister) = [0xcb, 0x98]
-encodeInstruction (RES_B_R Bit3 BRegister) = [0xcb, 0x99]
-encodeInstruction (RES_B_R Bit3 CRegister) = [0xcb, 0x9a]
-encodeInstruction (RES_B_R Bit3 DRegister) = [0xcb, 0x9b]
-encodeInstruction (RES_B_R Bit3 ERegister) = [0xcb, 0x9c]
-encodeInstruction (RES_B_R Bit3 HRegister) = [0xcb, 0x9d]
-encodeInstruction (RES_B_R Bit3 LRegister) = [0xcb, 0x9e]
-encodeInstruction (RES_B_ATHL Bit3) = [0xcb, 0x9f]
+encodeInstruction (RES_B_R Bit3 ARegister) = [0xcb, 0x9f]
+encodeInstruction (RES_B_R Bit3 BRegister) = [0xcb, 0x98]
+encodeInstruction (RES_B_R Bit3 CRegister) = [0xcb, 0x99]
+encodeInstruction (RES_B_R Bit3 DRegister) = [0xcb, 0x9a]
+encodeInstruction (RES_B_R Bit3 ERegister) = [0xcb, 0x9b]
+encodeInstruction (RES_B_R Bit3 HRegister) = [0xcb, 0x9c]
+encodeInstruction (RES_B_R Bit3 LRegister) = [0xcb, 0x9d]
+encodeInstruction (RES_B_ATHL Bit3) = [0xcb, 0x9e]
 
 encodeInstruction (RES_B_R Bit4 ARegister) = [0xcb, 0xa7]
 encodeInstruction (RES_B_R Bit4 BRegister) = [0xcb, 0xa0]
@@ -733,14 +734,14 @@ encodeInstruction (RES_B_R Bit4 HRegister) = [0xcb, 0xa4]
 encodeInstruction (RES_B_R Bit4 LRegister) = [0xcb, 0xa5]
 encodeInstruction (RES_B_ATHL Bit4) = [0xcb, 0xa6]
 
-encodeInstruction (RES_B_R Bit5 ARegister) = [0xcb, 0xa8]
-encodeInstruction (RES_B_R Bit5 BRegister) = [0xcb, 0xa9]
-encodeInstruction (RES_B_R Bit5 CRegister) = [0xcb, 0xaa]
-encodeInstruction (RES_B_R Bit5 DRegister) = [0xcb, 0xab]
-encodeInstruction (RES_B_R Bit5 ERegister) = [0xcb, 0xac]
-encodeInstruction (RES_B_R Bit5 HRegister) = [0xcb, 0xad]
-encodeInstruction (RES_B_R Bit5 LRegister) = [0xcb, 0xae]
-encodeInstruction (RES_B_ATHL Bit5) = [0xcb, 0xaf]
+encodeInstruction (RES_B_R Bit5 ARegister) = [0xcb, 0xaf]
+encodeInstruction (RES_B_R Bit5 BRegister) = [0xcb, 0xa8]
+encodeInstruction (RES_B_R Bit5 CRegister) = [0xcb, 0xa9]
+encodeInstruction (RES_B_R Bit5 DRegister) = [0xcb, 0xaa]
+encodeInstruction (RES_B_R Bit5 ERegister) = [0xcb, 0xab]
+encodeInstruction (RES_B_R Bit5 HRegister) = [0xcb, 0xac]
+encodeInstruction (RES_B_R Bit5 LRegister) = [0xcb, 0xad]
+encodeInstruction (RES_B_ATHL Bit5) = [0xcb, 0xae]
 
 encodeInstruction (RES_B_R Bit6 ARegister) = [0xcb, 0xb7]
 encodeInstruction (RES_B_R Bit6 BRegister) = [0xcb, 0xb0]
@@ -751,14 +752,14 @@ encodeInstruction (RES_B_R Bit6 HRegister) = [0xcb, 0xb4]
 encodeInstruction (RES_B_R Bit6 LRegister) = [0xcb, 0xb5]
 encodeInstruction (RES_B_ATHL Bit6) = [0xcb, 0xb6]
 
-encodeInstruction (RES_B_R Bit7 ARegister) = [0xcb, 0xb8]
-encodeInstruction (RES_B_R Bit7 BRegister) = [0xcb, 0xb9]
-encodeInstruction (RES_B_R Bit7 CRegister) = [0xcb, 0xba]
-encodeInstruction (RES_B_R Bit7 DRegister) = [0xcb, 0xbb]
-encodeInstruction (RES_B_R Bit7 ERegister) = [0xcb, 0xbc]
-encodeInstruction (RES_B_R Bit7 HRegister) = [0xcb, 0xbd]
-encodeInstruction (RES_B_R Bit7 LRegister) = [0xcb, 0xbe]
-encodeInstruction (RES_B_ATHL Bit7) = [0xcb, 0xbf]
+encodeInstruction (RES_B_R Bit7 ARegister) = [0xcb, 0xbf]
+encodeInstruction (RES_B_R Bit7 BRegister) = [0xcb, 0xb8]
+encodeInstruction (RES_B_R Bit7 CRegister) = [0xcb, 0xb9]
+encodeInstruction (RES_B_R Bit7 DRegister) = [0xcb, 0xba]
+encodeInstruction (RES_B_R Bit7 ERegister) = [0xcb, 0xbb]
+encodeInstruction (RES_B_R Bit7 HRegister) = [0xcb, 0xbc]
+encodeInstruction (RES_B_R Bit7 LRegister) = [0xcb, 0xbd]
+encodeInstruction (RES_B_ATHL Bit7) = [0xcb, 0xbe]
 
 encodeInstruction (JP_NN nn) = [0xc3, lowByte nn, highByte nn]
 encodeInstruction (JP_C_NN NZero nn) = [0xc2, lowByte nn, highByte nn]
@@ -767,11 +768,11 @@ encodeInstruction (JP_C_NN NCarry nn) = [0xd2, lowByte nn, highByte nn]
 encodeInstruction (JP_C_NN Carry nn) = [0xda, lowByte nn, highByte nn]
 encodeInstruction JP_ATHL = [0xe9]
 
-encodeInstruction (JR_N n) = [0x18, n]
-encodeInstruction (JR_C_N NZero n) = [0x20, n]
-encodeInstruction (JR_C_N Zero n) = [0x28, n]
-encodeInstruction (JR_C_N NCarry n) = [0x30, n]
-encodeInstruction (JR_C_N Carry n) = [0x38, n]
+encodeInstruction (JR_N n) = [0x18, fromIntegral n]
+encodeInstruction (JR_C_N NZero n) = [0x20, fromIntegral n]
+encodeInstruction (JR_C_N Zero n) = [0x28, fromIntegral n]
+encodeInstruction (JR_C_N NCarry n) = [0x30, fromIntegral n]
+encodeInstruction (JR_C_N Carry n) = [0x38, fromIntegral n]
 
 encodeInstruction (CALL_NN nn) = [0xcd, lowByte nn, highByte nn]
 encodeInstruction (CALL_C_NN NZero nn) = [0xc4, lowByte nn, highByte nn]
@@ -1177,14 +1178,14 @@ decodeInstruction getWord8 = do
           0x45 -> dec (BIT_B_R Bit0 LRegister)
           0x46 -> dec (BIT_B_ATHL Bit0)
 
-          0x48 -> dec (BIT_B_R Bit1 ARegister)
-          0x49 -> dec (BIT_B_R Bit1 BRegister)
-          0x4a -> dec (BIT_B_R Bit1 CRegister)
-          0x4b -> dec (BIT_B_R Bit1 DRegister)
-          0x4c -> dec (BIT_B_R Bit1 ERegister)
-          0x4d -> dec (BIT_B_R Bit1 HRegister)
-          0x4e -> dec (BIT_B_R Bit1 LRegister)
-          0x4f -> dec (BIT_B_ATHL Bit1)
+          0x4f -> dec (BIT_B_R Bit1 ARegister)
+          0x48 -> dec (BIT_B_R Bit1 BRegister)
+          0x49 -> dec (BIT_B_R Bit1 CRegister)
+          0x4a -> dec (BIT_B_R Bit1 DRegister)
+          0x4b -> dec (BIT_B_R Bit1 ERegister)
+          0x4c -> dec (BIT_B_R Bit1 HRegister)
+          0x4d -> dec (BIT_B_R Bit1 LRegister)
+          0x4e -> dec (BIT_B_ATHL Bit1)
 
           0x57 -> dec (BIT_B_R Bit2 ARegister)
           0x50 -> dec (BIT_B_R Bit2 BRegister)
@@ -1195,14 +1196,14 @@ decodeInstruction getWord8 = do
           0x55 -> dec (BIT_B_R Bit2 LRegister)
           0x56 -> dec (BIT_B_ATHL Bit2)
 
-          0x58 -> dec (BIT_B_R Bit3 ARegister)
-          0x59 -> dec (BIT_B_R Bit3 BRegister)
-          0x5a -> dec (BIT_B_R Bit3 CRegister)
-          0x5b -> dec (BIT_B_R Bit3 DRegister)
-          0x5c -> dec (BIT_B_R Bit3 ERegister)
-          0x5d -> dec (BIT_B_R Bit3 HRegister)
-          0x5e -> dec (BIT_B_R Bit3 LRegister)
-          0x5f -> dec (BIT_B_ATHL Bit3)
+          0x5f -> dec (BIT_B_R Bit3 ARegister)
+          0x58 -> dec (BIT_B_R Bit3 BRegister)
+          0x59 -> dec (BIT_B_R Bit3 CRegister)
+          0x5a -> dec (BIT_B_R Bit3 DRegister)
+          0x5b -> dec (BIT_B_R Bit3 ERegister)
+          0x5c -> dec (BIT_B_R Bit3 HRegister)
+          0x5d -> dec (BIT_B_R Bit3 LRegister)
+          0x5e -> dec (BIT_B_ATHL Bit3)
 
           0x67 -> dec (BIT_B_R Bit4 ARegister)
           0x60 -> dec (BIT_B_R Bit4 BRegister)
@@ -1213,14 +1214,14 @@ decodeInstruction getWord8 = do
           0x65 -> dec (BIT_B_R Bit4 LRegister)
           0x66 -> dec (BIT_B_ATHL Bit4)
 
-          0x68 -> dec (BIT_B_R Bit5 ARegister)
-          0x69 -> dec (BIT_B_R Bit5 BRegister)
-          0x6a -> dec (BIT_B_R Bit5 CRegister)
-          0x6b -> dec (BIT_B_R Bit5 DRegister)
-          0x6c -> dec (BIT_B_R Bit5 ERegister)
-          0x6d -> dec (BIT_B_R Bit5 HRegister)
-          0x6e -> dec (BIT_B_R Bit5 LRegister)
-          0x6f -> dec (BIT_B_ATHL Bit5)
+          0x6f -> dec (BIT_B_R Bit5 ARegister)
+          0x68 -> dec (BIT_B_R Bit5 BRegister)
+          0x69 -> dec (BIT_B_R Bit5 CRegister)
+          0x6a -> dec (BIT_B_R Bit5 DRegister)
+          0x6b -> dec (BIT_B_R Bit5 ERegister)
+          0x6c -> dec (BIT_B_R Bit5 HRegister)
+          0x6d -> dec (BIT_B_R Bit5 LRegister)
+          0x6e -> dec (BIT_B_ATHL Bit5)
 
           0x77 -> dec (BIT_B_R Bit6 ARegister)
           0x70 -> dec (BIT_B_R Bit6 BRegister)
@@ -1231,14 +1232,14 @@ decodeInstruction getWord8 = do
           0x75 -> dec (BIT_B_R Bit6 LRegister)
           0x76 -> dec (BIT_B_ATHL Bit6)
 
-          0x78 -> dec (BIT_B_R Bit7 ARegister)
-          0x79 -> dec (BIT_B_R Bit7 BRegister)
-          0x7a -> dec (BIT_B_R Bit7 CRegister)
-          0x7b -> dec (BIT_B_R Bit7 DRegister)
-          0x7c -> dec (BIT_B_R Bit7 ERegister)
-          0x7d -> dec (BIT_B_R Bit7 HRegister)
-          0x7e -> dec (BIT_B_R Bit7 LRegister)
-          0x7f -> dec (BIT_B_ATHL Bit7)
+          0x7f -> dec (BIT_B_R Bit7 ARegister)
+          0x78 -> dec (BIT_B_R Bit7 BRegister)
+          0x79 -> dec (BIT_B_R Bit7 CRegister)
+          0x7a -> dec (BIT_B_R Bit7 DRegister)
+          0x7b -> dec (BIT_B_R Bit7 ERegister)
+          0x7c -> dec (BIT_B_R Bit7 HRegister)
+          0x7d -> dec (BIT_B_R Bit7 LRegister)
+          0x7e -> dec (BIT_B_ATHL Bit7)
 
           0xc7 -> dec (SET_B_R Bit0 ARegister)
           0xc0 -> dec (SET_B_R Bit0 BRegister)
@@ -1249,14 +1250,14 @@ decodeInstruction getWord8 = do
           0xc5 -> dec (SET_B_R Bit0 LRegister)
           0xc6 -> dec (SET_B_ATHL Bit0)
 
-          0xc8 -> dec (SET_B_R Bit1 ARegister)
-          0xc9 -> dec (SET_B_R Bit1 BRegister)
-          0xca -> dec (SET_B_R Bit1 CRegister)
-          0xcb -> dec (SET_B_R Bit1 DRegister)
-          0xcc -> dec (SET_B_R Bit1 ERegister)
-          0xcd -> dec (SET_B_R Bit1 HRegister)
-          0xce -> dec (SET_B_R Bit1 LRegister)
-          0xcf -> dec (SET_B_ATHL Bit1)
+          0xcf -> dec (SET_B_R Bit1 ARegister)
+          0xc8 -> dec (SET_B_R Bit1 BRegister)
+          0xc9 -> dec (SET_B_R Bit1 CRegister)
+          0xca -> dec (SET_B_R Bit1 DRegister)
+          0xcb -> dec (SET_B_R Bit1 ERegister)
+          0xcc -> dec (SET_B_R Bit1 HRegister)
+          0xcd -> dec (SET_B_R Bit1 LRegister)
+          0xce -> dec (SET_B_ATHL Bit1)
 
           0xd7 -> dec (SET_B_R Bit2 ARegister)
           0xd0 -> dec (SET_B_R Bit2 BRegister)
@@ -1267,14 +1268,14 @@ decodeInstruction getWord8 = do
           0xd5 -> dec (SET_B_R Bit2 LRegister)
           0xd6 -> dec (SET_B_ATHL Bit2)
 
-          0xd8 -> dec (SET_B_R Bit3 ARegister)
-          0xd9 -> dec (SET_B_R Bit3 BRegister)
-          0xda -> dec (SET_B_R Bit3 CRegister)
-          0xdb -> dec (SET_B_R Bit3 DRegister)
-          0xdc -> dec (SET_B_R Bit3 ERegister)
-          0xdd -> dec (SET_B_R Bit3 HRegister)
-          0xde -> dec (SET_B_R Bit3 LRegister)
-          0xdf -> dec (SET_B_ATHL Bit3)
+          0xdf -> dec (SET_B_R Bit3 ARegister)
+          0xd8 -> dec (SET_B_R Bit3 BRegister)
+          0xd9 -> dec (SET_B_R Bit3 CRegister)
+          0xda -> dec (SET_B_R Bit3 DRegister)
+          0xdb -> dec (SET_B_R Bit3 ERegister)
+          0xdc -> dec (SET_B_R Bit3 HRegister)
+          0xdd -> dec (SET_B_R Bit3 LRegister)
+          0xde -> dec (SET_B_ATHL Bit3)
 
           0xe7 -> dec (SET_B_R Bit4 ARegister)
           0xe0 -> dec (SET_B_R Bit4 BRegister)
@@ -1285,14 +1286,14 @@ decodeInstruction getWord8 = do
           0xe5 -> dec (SET_B_R Bit4 LRegister)
           0xe6 -> dec (SET_B_ATHL Bit4)
 
-          0xe8 -> dec (SET_B_R Bit5 ARegister)
-          0xe9 -> dec (SET_B_R Bit5 BRegister)
-          0xea -> dec (SET_B_R Bit5 CRegister)
-          0xeb -> dec (SET_B_R Bit5 DRegister)
-          0xec -> dec (SET_B_R Bit5 ERegister)
-          0xed -> dec (SET_B_R Bit5 HRegister)
-          0xee -> dec (SET_B_R Bit5 LRegister)
-          0xef -> dec (SET_B_ATHL Bit5)
+          0xef -> dec (SET_B_R Bit5 ARegister)
+          0xe8 -> dec (SET_B_R Bit5 BRegister)
+          0xe9 -> dec (SET_B_R Bit5 CRegister)
+          0xea -> dec (SET_B_R Bit5 DRegister)
+          0xeb -> dec (SET_B_R Bit5 ERegister)
+          0xec -> dec (SET_B_R Bit5 HRegister)
+          0xed -> dec (SET_B_R Bit5 LRegister)
+          0xee -> dec (SET_B_ATHL Bit5)
 
           0xf7 -> dec (SET_B_R Bit6 ARegister)
           0xf0 -> dec (SET_B_R Bit6 BRegister)
@@ -1303,14 +1304,14 @@ decodeInstruction getWord8 = do
           0xf5 -> dec (SET_B_R Bit6 LRegister)
           0xf6 -> dec (SET_B_ATHL Bit6)
 
-          0xf8 -> dec (SET_B_R Bit7 ARegister)
-          0xf9 -> dec (SET_B_R Bit7 BRegister)
-          0xfa -> dec (SET_B_R Bit7 CRegister)
-          0xfb -> dec (SET_B_R Bit7 DRegister)
-          0xfc -> dec (SET_B_R Bit7 ERegister)
-          0xfd -> dec (SET_B_R Bit7 HRegister)
-          0xfe -> dec (SET_B_R Bit7 LRegister)
-          0xff -> dec (SET_B_ATHL Bit7)
+          0xff -> dec (SET_B_R Bit7 ARegister)
+          0xf8 -> dec (SET_B_R Bit7 BRegister)
+          0xf9 -> dec (SET_B_R Bit7 CRegister)
+          0xfa -> dec (SET_B_R Bit7 DRegister)
+          0xfb -> dec (SET_B_R Bit7 ERegister)
+          0xfc -> dec (SET_B_R Bit7 HRegister)
+          0xfd -> dec (SET_B_R Bit7 LRegister)
+          0xfe -> dec (SET_B_ATHL Bit7)
 
           0x87 -> dec (RES_B_R Bit0 ARegister)
           0x80 -> dec (RES_B_R Bit0 BRegister)
@@ -1321,14 +1322,14 @@ decodeInstruction getWord8 = do
           0x85 -> dec (RES_B_R Bit0 LRegister)
           0x86 -> dec (RES_B_ATHL Bit0)
 
-          0x88 -> dec (RES_B_R Bit1 ARegister)
-          0x89 -> dec (RES_B_R Bit1 BRegister)
-          0x8a -> dec (RES_B_R Bit1 CRegister)
-          0x8b -> dec (RES_B_R Bit1 DRegister)
-          0x8c -> dec (RES_B_R Bit1 ERegister)
-          0x8d -> dec (RES_B_R Bit1 HRegister)
-          0x8e -> dec (RES_B_R Bit1 LRegister)
-          0x8f -> dec (RES_B_ATHL Bit1)
+          0x8f -> dec (RES_B_R Bit1 ARegister)
+          0x88 -> dec (RES_B_R Bit1 BRegister)
+          0x89 -> dec (RES_B_R Bit1 CRegister)
+          0x8a -> dec (RES_B_R Bit1 DRegister)
+          0x8b -> dec (RES_B_R Bit1 ERegister)
+          0x8c -> dec (RES_B_R Bit1 HRegister)
+          0x8d -> dec (RES_B_R Bit1 LRegister)
+          0x8e -> dec (RES_B_ATHL Bit1)
 
           0x97 -> dec (RES_B_R Bit2 ARegister)
           0x90 -> dec (RES_B_R Bit2 BRegister)
@@ -1339,14 +1340,14 @@ decodeInstruction getWord8 = do
           0x95 -> dec (RES_B_R Bit2 LRegister)
           0x96 -> dec (RES_B_ATHL Bit2)
 
-          0x98 -> dec (RES_B_R Bit3 ARegister)
-          0x99 -> dec (RES_B_R Bit3 BRegister)
-          0x9a -> dec (RES_B_R Bit3 CRegister)
-          0x9b -> dec (RES_B_R Bit3 DRegister)
-          0x9c -> dec (RES_B_R Bit3 ERegister)
-          0x9d -> dec (RES_B_R Bit3 HRegister)
-          0x9e -> dec (RES_B_R Bit3 LRegister)
-          0x9f -> dec (RES_B_ATHL Bit3)
+          0x9f -> dec (RES_B_R Bit3 ARegister)
+          0x98 -> dec (RES_B_R Bit3 BRegister)
+          0x99 -> dec (RES_B_R Bit3 CRegister)
+          0x9a -> dec (RES_B_R Bit3 DRegister)
+          0x9b -> dec (RES_B_R Bit3 ERegister)
+          0x9c -> dec (RES_B_R Bit3 HRegister)
+          0x9d -> dec (RES_B_R Bit3 LRegister)
+          0x9e -> dec (RES_B_ATHL Bit3)
 
           0xa7 -> dec (RES_B_R Bit4 ARegister)
           0xa0 -> dec (RES_B_R Bit4 BRegister)
@@ -1357,14 +1358,14 @@ decodeInstruction getWord8 = do
           0xa5 -> dec (RES_B_R Bit4 LRegister)
           0xa6 -> dec (RES_B_ATHL Bit4)
 
-          0xa8 -> dec (RES_B_R Bit5 ARegister)
-          0xa9 -> dec (RES_B_R Bit5 BRegister)
-          0xaa -> dec (RES_B_R Bit5 CRegister)
-          0xab -> dec (RES_B_R Bit5 DRegister)
-          0xac -> dec (RES_B_R Bit5 ERegister)
-          0xad -> dec (RES_B_R Bit5 HRegister)
-          0xae -> dec (RES_B_R Bit5 LRegister)
-          0xaf -> dec (RES_B_ATHL Bit5)
+          0xaf -> dec (RES_B_R Bit5 ARegister)
+          0xa8 -> dec (RES_B_R Bit5 BRegister)
+          0xa9 -> dec (RES_B_R Bit5 CRegister)
+          0xaa -> dec (RES_B_R Bit5 DRegister)
+          0xab -> dec (RES_B_R Bit5 ERegister)
+          0xac -> dec (RES_B_R Bit5 HRegister)
+          0xad -> dec (RES_B_R Bit5 LRegister)
+          0xae -> dec (RES_B_ATHL Bit5)
 
           0xb7 -> dec (RES_B_R Bit6 ARegister)
           0xb0 -> dec (RES_B_R Bit6 BRegister)
@@ -1375,14 +1376,14 @@ decodeInstruction getWord8 = do
           0xb5 -> dec (RES_B_R Bit6 LRegister)
           0xb6 -> dec (RES_B_ATHL Bit6)
 
-          0xb8 -> dec (RES_B_R Bit7 ARegister)
-          0xb9 -> dec (RES_B_R Bit7 BRegister)
-          0xba -> dec (RES_B_R Bit7 CRegister)
-          0xbb -> dec (RES_B_R Bit7 DRegister)
-          0xbc -> dec (RES_B_R Bit7 ERegister)
-          0xbd -> dec (RES_B_R Bit7 HRegister)
-          0xbe -> dec (RES_B_R Bit7 LRegister)
-          0xbf -> dec (RES_B_ATHL Bit7)
+          0xbf -> dec (RES_B_R Bit7 ARegister)
+          0xb8 -> dec (RES_B_R Bit7 BRegister)
+          0xb9 -> dec (RES_B_R Bit7 CRegister)
+          0xba -> dec (RES_B_R Bit7 DRegister)
+          0xbb -> dec (RES_B_R Bit7 ERegister)
+          0xbc -> dec (RES_B_R Bit7 HRegister)
+          0xbd -> dec (RES_B_R Bit7 LRegister)
+          0xbe -> dec (RES_B_ATHL Bit7)
 
           _ -> return Nothing
 
@@ -1392,7 +1393,7 @@ decodeInstruction getWord8 = do
     dec r = return $ Just r
     decn r = do
       b <- getWord8
-      return $ Just $ r b
+      return $ Just $ r (fromIntegral b)
     decnn r = do
       l <- getWord8
       h <- getWord8

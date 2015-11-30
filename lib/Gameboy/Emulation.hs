@@ -29,12 +29,13 @@ data EmulatorState = EmulatorState {
     cartridgeRomBank1 :: VU.Vector Word8,
 
     internalRamBank0 :: VU.Vector Word8,
+    internalRamBank1 :: VU.Vector Word8,
     zeroPage :: VU.Vector Word8,
 
     characterRam :: VU.Vector Word8,
     bgMapData :: VU.Vector Word8,
     spriteAttributeData :: VU.Vector Word8
-  }
+  } deriving Show
 
 initialState :: EmulatorState
 initialState = EmulatorState {
@@ -52,6 +53,7 @@ initialState = EmulatorState {
       cartridgeRomBank0 = VU.replicate 0x4000 0x0,
       cartridgeRomBank1 = VU.replicate 0x4000 0x0,
       internalRamBank0 = VU.replicate 0x1000 0x0,
+      internalRamBank1 = VU.replicate 0x1000 0x0,
       zeroPage = VU.replicate 0x79 0x0,
       bgMapData = VU.replicate 0x800 0x0,
       characterRam = VU.replicate 0x1800 0x0,
@@ -76,6 +78,7 @@ data WorkingState s = WorkingState {
     workingCartridgeRomBank1 :: VUM.MVector s Word8,
 
     workingInternalRamBank0 :: VUM.MVector s Word8,
+    workingInternalRamBank1 :: VUM.MVector s Word8,
     workingZeroPage :: VUM.MVector s Word8,
 
     workingCharacterRam :: VUM.MVector s Word8,
@@ -103,6 +106,7 @@ freezeWorkingState st = EmulatorState <$>
     freezeVector workingCartridgeRomBank0 <*>
     freezeVector workingCartridgeRomBank1 <*>
     freezeVector workingInternalRamBank0 <*>
+    freezeVector workingInternalRamBank1 <*>
     freezeVector workingZeroPage <*>
     freezeVector workingCharacterRam <*>
     freezeVector workingBgMapData <*>
@@ -127,6 +131,7 @@ thawWorkingState st = WorkingState <$>
     thawVector cartridgeRomBank0 <*>
     thawVector cartridgeRomBank1 <*>
     thawVector internalRamBank0 <*>
+    thawVector internalRamBank1 <*>
     thawVector zeroPage <*>
     thawVector characterRam <*>
     thawVector bgMapData <*>
@@ -198,25 +203,29 @@ instance Memory (WorkingEnvironment s) where
     | addr < 0x8000 = readMem workingCartridgeRomBank1 (addr - 0x4000)
     | addr < 0x9800 = readMem workingCharacterRam (addr - 0x8000)
     | addr < 0xa000 = readMem workingBgMapData (addr - 0x9800)
-    | addr < 0xc000 = fail "Illegal read of cartridge ram bank"
+    | addr < 0xc000 = fail $ "Illegal read from cartridge ram bank " ++ show addr
     | addr < 0xd000 = readMem workingInternalRamBank0 (addr - 0xc000)
-    | addr < 0xfe00 = fail "Unimplemented memory region"
+    | addr < 0xe000 = readMem workingInternalRamBank1 (addr - 0xd000)
+    | addr < 0xfe00 = getMemory (addr - 0x2000)
     | addr < 0xfea0 = readMem workingSpriteAttributeData (addr - 0xfe00)
-    | addr < 0xff80 = fail "Unimplemented memory region"
-    | addr < 0xffff = readMem workingZeroPage (addr - 0xfe80)
+    | addr < 0xff00 = fail $ "Illegal read from unusable memory region " ++ show addr
+    | addr < 0xff80 = return 0x0
+    | addr < 0xffff = readMem workingZeroPage (addr - 0xff80)
     | otherwise = readRef workingInterruptsEnabled
 
   setMemory addr byte
-    | addr < 0x4000 = fail "Illegal write of cartridge rom"
-    | addr < 0x8000 = fail "Illegal write of cartridge rom"
+    | addr < 0x4000 = fail $ "Illegal write to cartridge rom " ++ show addr
+    | addr < 0x8000 = fail $ "Illegal write to cartridge rom " ++ show addr
     | addr < 0x9800 = writeMem workingCharacterRam (addr - 0x8000) byte
     | addr < 0xa000 = writeMem workingBgMapData (addr - 0x9800) byte
-    | addr < 0xc000 = fail "Illegal write of cartridge ram bank"
+    | addr < 0xc000 = fail $ "Illegal write to cartridge ram bank " ++ show addr
     | addr < 0xd000 = writeMem workingInternalRamBank0 (addr - 0xc000) byte
-    | addr < 0xfe00 = fail "Unimplemented memory region"
+    | addr < 0xe000 = writeMem workingInternalRamBank1 (addr - 0xd000) byte
+    | addr < 0xfe00 = setMemory (addr - 0x2000) byte
     | addr < 0xfea0 = writeMem workingSpriteAttributeData (addr - 0xfe00) byte
-    | addr < 0xff80 = fail "Unimplemented memory region"
-    | addr < 0xffff = writeMem workingZeroPage (addr - 0xfe80) byte
+    | addr < 0xff00 = fail $ "Illegal write to unusable memory region " ++ show addr
+    | addr < 0xff80 = return ()
+    | addr < 0xffff = writeMem workingZeroPage (addr - 0xff80) byte
     | otherwise = writeRef workingInterruptsEnabled byte
 
 stepEmulator :: EmulatorState -> Int -> EmulatorState

@@ -105,7 +105,7 @@ getNextPC = do
 pushStack16 :: (CPU m, Memory m) => Word16 -> m ()
 pushStack16 nn = do
   sp <- getStackPointer
-  setMemory16 sp nn
+  setMemory16 (sp - 2) nn
   setStackPointer (sp - 2)
 
 popStack16 :: (CPU m, Memory m) => m Word16
@@ -879,7 +879,7 @@ doInstruction (JR_C_N cond n) = do
 
 doInstruction (CALL_NN nn) = do
   pc <- getProgramCounter
-  pushStack16 (pc + 1)
+  pushStack16 pc
   setProgramCounter nn
   tick 12
 
@@ -887,7 +887,7 @@ doInstruction (CALL_C_NN cond nn) = do
   c <- testCond cond
   when c $ do
     pc <- getProgramCounter
-    pushStack16 (pc + 1)
+    pushStack16 pc
     setProgramCounter nn
   tick 12
 

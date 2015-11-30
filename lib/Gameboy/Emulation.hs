@@ -39,26 +39,26 @@ data EmulatorState = EmulatorState {
 
 initialState :: EmulatorState
 initialState = EmulatorState {
-      interruptsEnabled = 0x0f,
-      stackPointer = 0,
-      programCounter = 0x100,
-      aRegister = 0,
-      bRegister = 0,
-      cRegister = 0,
-      dRegister = 0,
-      eRegister = 0,
-      hRegister = 0,
-      lRegister = 0,
-      fRegister = 0,
-      cartridgeRomBank0 = VU.replicate 0x4000 0x0,
-      cartridgeRomBank1 = VU.replicate 0x4000 0x0,
-      internalRamBank0 = VU.replicate 0x1000 0x0,
-      internalRamBank1 = VU.replicate 0x1000 0x0,
-      zeroPage = VU.replicate 0x79 0x0,
-      bgMapData = VU.replicate 0x800 0x0,
-      characterRam = VU.replicate 0x1800 0x0,
-      spriteAttributeData = VU.replicate 0x80 0x0
-    }
+    interruptsEnabled = 0x0f,
+    stackPointer = 0,
+    programCounter = 0x100,
+    aRegister = 0,
+    bRegister = 0,
+    cRegister = 0,
+    dRegister = 0,
+    eRegister = 0,
+    hRegister = 0,
+    lRegister = 0,
+    fRegister = 0,
+    cartridgeRomBank0 = VU.replicate 0x4000 0x0,
+    cartridgeRomBank1 = VU.replicate 0x4000 0x0,
+    internalRamBank0 = VU.replicate 0x1000 0x0,
+    internalRamBank1 = VU.replicate 0x1000 0x0,
+    zeroPage = VU.replicate 0x79 0x0,
+    bgMapData = VU.replicate 0x800 0x0,
+    characterRam = VU.replicate 0x1800 0x0,
+    spriteAttributeData = VU.replicate 0x80 0x0
+  }
 
 loadRom :: BS.ByteString -> Either String EmulatorState
 loadRom rom = if BS.length rom == 0x8000 then Right state else Left "Improper rom size"
@@ -209,7 +209,7 @@ instance Memory (WorkingEnvironment s) where
     | addr < 0xfe00 = getMemory (addr - 0x2000)
     | addr < 0xfea0 = readMem workingSpriteAttributeData (addr - 0xfe00)
     | addr < 0xff00 = fail $ "Illegal read from unusable memory region " ++ show addr
-    | addr < 0xff80 = return 0x0
+    | addr < 0xff80 = return 0x0 -- TODO: Implement hardware registers
     | addr < 0xffff = readMem workingZeroPage (addr - 0xff80)
     | otherwise = readRef workingInterruptsEnabled
 
@@ -224,7 +224,7 @@ instance Memory (WorkingEnvironment s) where
     | addr < 0xfe00 = setMemory (addr - 0x2000) byte
     | addr < 0xfea0 = writeMem workingSpriteAttributeData (addr - 0xfe00) byte
     | addr < 0xff00 = fail $ "Illegal write to unusable memory region " ++ show addr
-    | addr < 0xff80 = return ()
+    | addr < 0xff80 = return () -- TODO: Implement hardware registers
     | addr < 0xffff = writeMem workingZeroPage (addr - 0xff80) byte
     | otherwise = writeRef workingInterruptsEnabled byte
 

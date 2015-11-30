@@ -53,6 +53,7 @@ class Monad m => Memory m where
   getMemory :: Word16 -> m Word8
   setMemory :: Word16 -> Word8 -> m ()
 
+{-# INLINE step #-}
 step :: (CPU m, Memory m) => m ()
 step = do
   mi <- decodeInstruction getNextPC
@@ -66,12 +67,14 @@ data Flag
   | HFlag
   | CFlag
 
+{-# INLINE flagBit #-}
 flagBit :: Flag -> Int
 flagBit ZFlag = 7
 flagBit NFlag = 6
 flagBit HFlag = 5
 flagBit CFlag = 4
 
+{-# INLINE bitNumber #-}
 bitNumber :: Bit -> Int
 bitNumber Bit0 = 0
 bitNumber Bit1 = 1
@@ -82,17 +85,20 @@ bitNumber Bit5 = 5
 bitNumber Bit6 = 6
 bitNumber Bit7 = 7
 
+{-# INLINE setMemory16 #-}
 setMemory16 :: (Memory m) => Word16 -> Word16 -> m ()
 setMemory16 addr nn = do
   setMemory addr (highByte nn)
   setMemory (addr + 1) (lowByte nn)
 
+{-# INLINE getMemory16 #-}
 getMemory16 :: (Memory m) => Word16 -> m Word16
 getMemory16 addr = do
   h <- getMemory addr
   l <- getMemory (addr + 1)
   return $ makeWord16 l h
 
+{-# INLINE getNextPC #-}
 getNextPC :: (CPU m, Memory m) => m Word8
 getNextPC = do
   pc <- getProgramCounter
@@ -102,12 +108,14 @@ getNextPC = do
       setProgramCounter (pc + 1)
       getMemory pc
 
+{-# INLINE pushStack16 #-}
 pushStack16 :: (CPU m, Memory m) => Word16 -> m ()
 pushStack16 nn = do
   sp <- getStackPointer
   setMemory16 (sp - 2) nn
   setStackPointer (sp - 2)
 
+{-# INLINE popStack16 #-}
 popStack16 :: (CPU m, Memory m) => m Word16
 popStack16 = do
   sp <- getStackPointer
@@ -115,6 +123,7 @@ popStack16 = do
   setStackPointer (sp + 2)
   return nn
 
+{-# INLINE getRegister #-}
 getRegister :: (CPU m) => Register -> m Word8
 getRegister ARegister = getARegister
 getRegister BRegister = getBRegister
@@ -124,6 +133,7 @@ getRegister ERegister = getERegister
 getRegister HRegister = getHRegister
 getRegister LRegister = getLRegister
 
+{-# INLINE setRegister #-}
 setRegister :: (CPU m) => Register -> Word8 -> m ()
 setRegister ARegister = setARegister
 setRegister BRegister = setBRegister
@@ -133,191 +143,228 @@ setRegister ERegister = setERegister
 setRegister HRegister = setHRegister
 setRegister LRegister = setLRegister
 
+{-# INLINE getAF #-}
 getAF :: (CPU m) => m Word16
 getAF = do
   h <- getARegister
   l <- getFRegister
   return $ makeWord16 l h
 
+{-# INLINE setAF #-}
 setAF :: (CPU m) => Word16 -> m ()
 setAF nn = do
   setARegister $ highByte nn
   setFRegister $ lowByte nn
 
+{-# INLINE getBC #-}
 getBC :: (CPU m) => m Word16
 getBC = do
   h <- getBRegister
   l <- getCRegister
   return $ makeWord16 l h
 
+{-# INLINE setBC #-}
 setBC :: (CPU m) => Word16 -> m ()
 setBC nn = do
   setBRegister $ highByte nn
   setCRegister $ lowByte nn
 
+{-# INLINE getDE #-}
 getDE :: (CPU m) => m Word16
 getDE = do
   h <- getDRegister
   l <- getERegister
   return $ makeWord16 l h
 
+{-# INLINE setDE #-}
 setDE :: (CPU m) => Word16 -> m ()
 setDE nn = do
   setDRegister $ highByte nn
   setERegister $ lowByte nn
 
+{-# INLINE getHL #-}
 getHL :: (CPU m) => m Word16
 getHL = do
   h <- getHRegister
   l <- getLRegister
   return $ makeWord16 l h
 
+{-# INLINE setHL #-}
 setHL :: (CPU m) => Word16 -> m ()
 setHL nn = do
   setHRegister $ highByte nn
   setLRegister $ lowByte nn
 
+{-# INLINE getAtBC #-}
 getAtBC :: (CPU m, Memory m) => m Word8
 getAtBC = getBC >>= getMemory
 
+{-# INLINE setAtBC #-}
 setAtBC :: (CPU m, Memory m) => Word8 -> m ()
 setAtBC n = getBC >>= (`setMemory` n)
 
+{-# INLINE getAtDE #-}
 getAtDE :: (CPU m, Memory m) => m Word8
 getAtDE = getDE >>= getMemory
 
+{-# INLINE setAtDE #-}
 setAtDE :: (CPU m, Memory m) => Word8 -> m ()
 setAtDE n = getDE >>= (`setMemory` n)
 
+{-# INLINE getAtHL #-}
 getAtHL :: (CPU m, Memory m) => m Word8
 getAtHL = getHL >>= getMemory
 
+{-# INLINE setAtHL #-}
 setAtHL :: (CPU m, Memory m) => Word8 -> m ()
 setAtHL n = getHL >>= (`setMemory` n)
 
+{-# INLINE getAtC #-}
 getAtC :: (CPU m, Memory m) => m Word8
 getAtC = do
   c <- getCRegister
   getMemory (makeWord16 c 0xff)
 
+{-# INLINE setAtC #-}
 setAtC :: (CPU m, Memory m) => Word8 -> m ()
 setAtC v = do
   c <- getCRegister
   setMemory (makeWord16 c 0xff) v
 
+{-# INLINE getFlag #-}
 getFlag :: CPU m => Flag -> m Bool
 getFlag flag = do
   f <- getFRegister
   return $ testBit f (flagBit flag)
 
-setFlags :: CPU m => [(Flag, Bool)] -> m ()
-setFlags l = do
+{-# INLINE setFlags #-}
+setFlags :: CPU m => Maybe Bool -> Maybe Bool -> Maybe Bool -> Maybe Bool -> m ()
+setFlags zf nf hf cf = do
     f <- getFRegister
-    setFRegister $ foldl setFlag f l
+    let f' = setFlag ZFlag zf $ setFlag NFlag nf $ setFlag HFlag hf $ setFlag CFlag cf f
+    setFRegister f'
   where
-    setFlag v (flag, True) = setBit v (flagBit flag)
-    setFlag v (flag, False) = clearBit v (flagBit flag)
+    setFlag f mb v =
+      case mb of
+        Just True -> setBit v (flagBit f)
+        Just False -> clearBit v (flagBit f)
+        Nothing -> v
 
+{-# INLINE testCond #-}
 testCond :: CPU m => Cond -> m Bool
 testCond Zero = getFlag ZFlag
 testCond NZero = not <$> getFlag ZFlag
 testCond Carry = getFlag CFlag
 testCond NCarry = not <$> getFlag CFlag
 
+{-# INLINE doAddA #-}
 doAddA :: CPU m => Word8 -> m ()
 doAddA n = do
   a <- getARegister
   let (res, h, c) = add8 a n
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setFlags (Just (res == 0)) (Just False) (Just h) (Just c)
   setARegister res
 
+{-# INLINE doAddCA #-}
 doAddCA :: CPU m => Word8 -> m ()
 doAddCA n = do
   a <- getARegister
   cflag <- getFlag CFlag
   let (res, h, c) = add8 a (n + if cflag then 1 else 0)
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setFlags (Just (res == 0)) (Just False) (Just h) (Just c)
   setARegister res
 
+{-# INLINE doSubA #-}
 doSubA :: CPU m => Word8 -> m ()
 doSubA n = do
   a <- getARegister
   let (res, h, c) = sub8 a n
-  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
+  setFlags (Just (res == 0)) (Just True) (Just h) (Just c)
   setARegister res
 
+{-# INLINE doSubCA #-}
 doSubCA :: CPU m => Word8 -> m ()
 doSubCA n = do
   a <- getARegister
   cflag <- getFlag CFlag
   let (res, h, c) = sub8 a (n + if cflag then 1 else 0)
-  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
+  setFlags (Just (res == 0)) (Just True) (Just h) (Just c)
   setARegister res
 
+{-# INLINE doAndA #-}
 doAndA :: CPU m => Word8 -> m ()
 doAndA n = do
   a <- getARegister
   let res = a .&. n
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, True), (CFlag, False)]
+  setFlags (Just (res == 0)) (Just False) (Just True) (Just False)
   setARegister res
 
+{-# INLINE doOrA #-}
 doOrA :: CPU m => Word8 -> m ()
 doOrA n = do
   a <- getARegister
   let res = a .|. n
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, False)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just False)
   setARegister res
 
+{-# INLINE doXorA #-}
 doXorA :: CPU m => Word8 -> m ()
 doXorA n = do
   a <- getARegister
   let res = a `xor` n
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, False)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just False)
   setARegister res
 
+{-# INLINE doCpA #-}
 doCpA :: CPU m => Word8 -> m ()
 doCpA n = do
   a <- getARegister
   let (res, h, c) = sub8 a n
-  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h), (CFlag, c)]
+  setFlags (Just (res == 0)) (Just True) (Just h) (Just c)
 
+{-# INLINE doAddHL #-}
 doAddHL :: CPU m => Word16 -> m ()
 doAddHL nn = do
   hl <- getHL
   let (res, h, c) = add16 hl nn
-  setFlags [(NFlag, False), (HFlag, h), (CFlag, c)]
+  setFlags Nothing (Just False) (Just h) (Just c)
   setHL res
 
+{-# INLINE doRLC #-}
 doRLC :: CPU m => Register -> m ()
 doRLC reg = do
   a <- getRegister reg
   let (r, c) = rotLC a
   setRegister reg r
-  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (r == 0)) (Just False) (Just False) (Just c)
 
+{-# INLINE doRL #-}
 doRL :: CPU m => Register -> m ()
 doRL reg = do
   a <- getRegister reg
   c <- getFlag CFlag
   let (ar, cr) = rotL a c
   setRegister reg ar
-  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  setFlags (Just (ar == 0)) (Just False) (Just False) (Just cr)
 
+{-# INLINE doRRC #-}
 doRRC :: CPU m => Register -> m ()
 doRRC reg = do
   a <- getRegister reg
   let (r, c) = rotRC a
   setRegister reg r
-  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (r == 0)) (Just False) (Just False) (Just c)
 
+{-# INLINE doRR #-}
 doRR :: CPU m => Register -> m ()
 doRR reg = do
   a <- getRegister reg
   c <- getFlag CFlag
   let (ar, cr) = rotR a c
   setRegister reg ar
-  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  setFlags (Just (ar == 0)) (Just False) (Just False) (Just cr)
 
+{-# INLINE doInstruction #-}
 doInstruction :: (CPU m, Memory m) => Instruction -> m ()
 
 doInstruction (LD_R_R t s) = do
@@ -580,28 +627,28 @@ doInstruction CP_ATHL = do
 doInstruction (INC_R reg) = do
   v <- getRegister reg
   let (res, h, _) = add8 v 1
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h)]
+  setFlags (Just (res == 0)) (Just False) (Just h) Nothing
   setRegister reg res
   tick 4
 
 doInstruction INC_ATHL = do
   v <- getAtHL
   let (res, h, _) = add8 v 1
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, h)]
+  setFlags (Just (res == 0)) (Just False) (Just h) Nothing
   setAtHL res
   tick 12
 
 doInstruction (DEC_R reg) = do
   v <- getRegister reg
   let (res, h, _) = sub8 v 1
-  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h)]
+  setFlags (Just (res == 0)) (Just True) (Just h) Nothing
   setRegister reg res
   tick 4
 
 doInstruction DEC_ATHL = do
   v <- getAtHL
   let (res, h, _) = sub8 v 1
-  setFlags [(ZFlag, res == 0), (NFlag, True), (HFlag, h)]
+  setFlags (Just (res == 0)) (Just True) (Just h) Nothing
   setAtHL res
   tick 12
 
@@ -624,7 +671,7 @@ doInstruction ADD_HL_SP = do
 doInstruction (ADD_SP_N n) = do
   sp <- getStackPointer
   let (res, h, c) = add16 sp (fromIntegral n)
-  setFlags [(ZFlag, False), (NFlag, False), (HFlag, h), (CFlag, c)]
+  setFlags (Just False) (Just False) (Just h) (Just c)
   setStackPointer res
   tick 16
 
@@ -687,16 +734,16 @@ doInstruction DAA = error "DAA is hard"
 doInstruction CPL = do
   a <- getARegister
   setARegister (complement a)
-  setFlags [(NFlag, True), (HFlag, True)]
+  setFlags Nothing (Just True) (Just True) Nothing
   tick 4
 
 doInstruction CCF = do
   c <- getFlag CFlag
-  setFlags [(NFlag, False), (HFlag, False), (CFlag, not c)]
+  setFlags Nothing (Just False) (Just False) (Just (not c))
   tick 4
 
 doInstruction SCF = do
-  setFlags [(NFlag, False), (HFlag, False), (CFlag, True)]
+  setFlags Nothing (Just False) (Just False) (Just True)
   tick 4
 
 doInstruction NOP = tick 4
@@ -729,7 +776,7 @@ doInstruction RLC_ATHL = do
   a <- getAtHL
   let (r, c) = rotLC a
   setAtHL r
-  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (r == 0)) (Just False) (Just False) (Just c)
   tick 16
 
 doInstruction (RL_R r) = do
@@ -741,7 +788,7 @@ doInstruction RL_ATHL = do
   c <- getFlag CFlag
   let (ar, cr) = rotL a c
   setAtHL ar
-  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  setFlags (Just (ar == 0)) (Just False) (Just False) (Just cr)
   tick 16
 
 doInstruction (RRC_R r) = do
@@ -752,7 +799,7 @@ doInstruction RRC_ATHL = do
   a <- getAtHL
   let (r, c) = rotRC a
   setAtHL r
-  setFlags [(ZFlag, r == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (r == 0)) (Just False) (Just False) (Just c)
   tick 16
 
 doInstruction (RR_R r) = do
@@ -764,7 +811,7 @@ doInstruction RR_ATHL = do
   c <- getFlag CFlag
   let (ar, cr) = rotR a c
   setAtHL ar
-  setFlags [(ZFlag, ar == 0), (NFlag, False), (HFlag, False), (CFlag, cr)]
+  setFlags (Just (ar == 0)) (Just False) (Just False) (Just cr)
   tick 16
 
 doInstruction (SLA_R r) = do
@@ -772,7 +819,7 @@ doInstruction (SLA_R r) = do
   let c = testBit b 7
   let bs = shift b 1
   setRegister r bs
-  setFlags [(ZFlag, bs == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (bs == 0)) (Just False) (Just False) (Just c)
   tick 8
 
 doInstruction SLA_ATHL = do
@@ -780,7 +827,7 @@ doInstruction SLA_ATHL = do
   let c = testBit b 7
   let bs = shift b 1
   setAtHL bs
-  setFlags [(ZFlag, bs == 0), (NFlag, False), (HFlag, False), (CFlag, c)]
+  setFlags (Just (bs == 0)) (Just False) (Just False) (Just c)
   tick 16
 
 doInstruction (SRA_R r) = do
@@ -790,7 +837,7 @@ doInstruction (SRA_R r) = do
   let bshift = shift b (-1)
   let res = if msb then setBit bshift 7 else clearBit bshift 7
   setRegister r res
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just lsb)
   tick 8
 
 doInstruction SRA_ATHL = do
@@ -800,7 +847,7 @@ doInstruction SRA_ATHL = do
   let bshift = shift b (-1)
   let res = if msb then setBit bshift 7 else clearBit bshift 7
   setAtHL res
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just lsb)
   tick 16
 
 doInstruction (SRL_R r) = do
@@ -808,7 +855,7 @@ doInstruction (SRL_R r) = do
   let lsb = testBit b 0
   let res = shift b (-1)
   setRegister r res
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just lsb)
   tick 8
 
 doInstruction SRL_ATHL = do
@@ -816,19 +863,19 @@ doInstruction SRL_ATHL = do
   let lsb = testBit b 0
   let res = shift b (-1)
   setAtHL res
-  setFlags [(ZFlag, res == 0), (NFlag, False), (HFlag, False), (CFlag, lsb)]
+  setFlags (Just (res == 0)) (Just False) (Just False) (Just lsb)
   tick 16
 
 doInstruction (BIT_B_R b r) = do
   val <- getRegister r
   let btest = testBit val (bitNumber b)
-  setFlags [(ZFlag, not btest), (NFlag, False), (HFlag, True)]
+  setFlags (Just (not btest)) (Just False) (Just True) Nothing
   tick 8
 
 doInstruction (BIT_B_ATHL b) = do
   val <- getAtHL
   let btest = testBit val (bitNumber b)
-  setFlags [(ZFlag, not btest), (NFlag, False), (HFlag, True)]
+  setFlags (Just (not btest)) (Just False) (Just True) Nothing
   tick 16
 
 doInstruction (SET_B_R b r) = do

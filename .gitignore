@@ -1,10 +1,4 @@
-dist
-*.o
-*.hi
-*.chi
-*.chs.h
-
+.*
 !.gitattributes
 !.gitignore
-.*
 

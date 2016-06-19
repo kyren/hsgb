@@ -1,7 +1,7 @@
 import Control.Monad
 import Foreign
 import Foreign.C
-import qualified Graphics.UI.SDL as SDL
+import qualified SDL.Raw as SDL
 import Gameboy.Emulation
 import Gameboy.Screen
 

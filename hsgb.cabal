@@ -8,30 +8,23 @@ cabal-version:       >= 1.10
 
 library
   hs-source-dirs:      lib
-  build-depends:       base == 4.*, vector >= 0.10, transformers >= 0.3, parsec >= 3.1, JuicyPixels >= 3.2, bytestring >= 0.9
+  build-depends:       base, vector, transformers, parsec, JuicyPixels, bytestring
   exposed-modules:     Gameboy.Assembler, Gameboy.CPU, Gameboy.Emulation, Gameboy.Instructions, Gameboy.Screen, Gameboy.TestState, Gameboy.Util
   default-language:    Haskell2010
-  ghc-options:         -Wall -fwarn-incomplete-patterns -O2 -funbox-strict-fields
-
-executable emulator
-  hs-source-dirs:      emulator
-  main-is:             Emulator.hs
-  build-depends:       base == 4.*, sdl2 >= 1.3, hsgb
-  default-language:    Haskell2010
-  ghc-options:         -Wall -fwarn-incomplete-patterns -O2 -funbox-strict-fields
+  ghc-options:         -Wall -fwarn-incomplete-patterns -O2
 
 executable testrom
   hs-source-dirs:      testrom
   main-is:             TestRom.hs
-  build-depends:       base == 4.*, bytestring >= 0.9, hsgb
+  build-depends:       base, bytestring, hsgb
   default-language:    Haskell2010
-  ghc-options:         -Wall -fwarn-incomplete-patterns -O2 -funbox-strict-fields
+  ghc-options:         -Wall -fwarn-incomplete-patterns -O2
 
 test-suite spec
   type:                exitcode-stdio-1.0
   hs-source-dirs:      spec
   main-is:             Spec.hs
   other-modules:       ProgramSpec, Gameboy.AssemblerSpec, Gameboy.InstructionSpec
-  build-depends:       base == 4.*, transformers >= 0.3, hspec >= 2.0, QuickCheck >= 2.4, heredoc >= 0.2, hsgb
+  build-depends:       base, transformers, hspec, QuickCheck, heredoc, hsgb
   default-language:    Haskell2010
-  ghc-options:         -Wall -fwarn-incomplete-patterns -O2 -funbox-strict-fields
+  ghc-options:         -Wall -fwarn-incomplete-patterns -O2

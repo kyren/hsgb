@@ -4,6 +4,4 @@ packages:
 - location:
     git: https://github.com/tejon/sdl2.git
     commit: 344807d2ea4d7ff5830f632800f26ba6f84baa13
-extra-deps:
-- sdl2-2.1.1
 resolver: nightly-2016-07-02
